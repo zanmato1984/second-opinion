@@ -26,6 +26,12 @@ The system emphasizes:
 - Testability and regression protection
 - Long-term organizational knowledge capture
 
+**Target approach (updated):** a three-skill pipeline that keeps orchestration explicit and contribution-friendly:
+
+1. **Reviewer Selector (LLM skill)** — chooses reviewers using reviewer definitions, metadata, and tags.
+2. **Prompt Assembler (deterministic skill)** — programmatically assembles reviewer prompts and diff slices from the selected list with supervision for determinism.
+3. **Final Review (LLM skill)** — runs the assembled prompt and emits structured findings.
+
 ---
 
 ## Motivation
@@ -57,6 +63,7 @@ Second Opinion aims to institutionalize this expertise by encoding it into compo
 - Allow experts to contribute isolated reviewer skills without creating a prompt dump
 - Attribute ownership and credit
 - Support automatic reviewer selection
+- Separate reviewer selection, prompt assembly, and final review into clear skills
 - Remain tool- and platform-agnostic
 - Support regression testing
 - Enable gradual evolution and retirement of reviewers
@@ -93,8 +100,9 @@ Second Opinion is structured into three layers:
 +-----------------------------+
 | Core Engine                |
 | - Reviewer Registry        |
-| - Orchestrator             |
-| - Selector                 |
+| - Reviewer Selector (LLM)  |
+| - Prompt Assembler         |
+| - Final Review (LLM)       |
 | - Output Merger            |
 | - Test Harness             |
 +-------------+---------------+
@@ -149,6 +157,18 @@ Collections specify:
 - Included reviewers
 - Selection priorities
 - Preferred reviewer types
+
+---
+
+## Skill Chain (Target Implementation)
+
+Second Opinion is implemented as a **three-skill chain** to keep responsibilities clean and contribution-friendly:
+
+1. **Reviewer Selector (LLM skill)** — chooses reviewers from the registry using definitions, metadata, and tags.
+2. **Prompt Assembler (deterministic skill)** — programmatically composes reviewer prompts + diff slices with deterministic ordering and supervision.
+3. **Final Review (LLM skill)** — executes the assembled prompt and emits structured findings.
+
+This separation ensures reviewer contributions stay modular and credited, while deterministic assembly avoids prompt sprawl.
 
 ---
 
@@ -235,11 +255,11 @@ Tags are flat metadata for filtering, orchestration, and analytics:
 ## Orchestration Flow
 
 1. Receive diff / PR context
-2. Run deterministic selector rules
+2. Run **Reviewer Selector (LLM)** using reviewer definitions, metadata, and tags
 3. Expand via collections if requested
-4. Slice diff for each reviewer
-5. Invoke reviewers
-6. Merge findings
+4. Run **Prompt Assembler** to deterministically slice and compose reviewer prompts
+5. Run **Final Review (LLM)** on the assembled prompt to emit findings
+6. Merge findings and validate schema
 7. Emit final structured report
 
 ---
