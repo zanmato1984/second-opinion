@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import fnmatch
+import json
 from typing import List
 
 from core.diff_parser import Diff
 from core.model import Reviewer
 from core.registry import Registry
+from core.llm import LLMBackend, LLMRequest
 
 
 @dataclass
@@ -64,8 +66,66 @@ def select_reviewers(diff: Diff, registry: Registry, repo: str) -> List[Selectio
 
 
 class ReviewerSelector:
+    mode = "deterministic"
+
     def select(self, diff: Diff, registry: Registry, repo: str) -> List[Selection]:
         return select_reviewers(diff, registry, repo)
+
+
+def build_selector_prompt(diff: Diff, registry: Registry, repo: str) -> str:
+    reviewers = []
+    for reviewer in registry.reviewers.values():
+        reviewers.append(
+            {
+                "id": reviewer.id,
+                "type": reviewer.type,
+                "owners": reviewer.owners,
+                "display_name": reviewer.display_name,
+                "description": reviewer.description,
+                "scopes": {
+                    "repos": reviewer.scopes.repos,
+                    "paths_include": reviewer.scopes.paths_include,
+                    "paths_exclude": reviewer.scopes.paths_exclude,
+                },
+                "tags": reviewer.tags,
+            }
+        )
+    payload = {
+        "repo": repo,
+        "changed_files": diff.file_paths(),
+        "reviewers": reviewers,
+    }
+    return (
+        "Select the best reviewers for the diff based on scopes, metadata, and tags. "
+        "Return a JSON array of reviewer ids.\n\n"
+        f"Context:\n{json.dumps(payload, indent=2, sort_keys=True)}"
+    )
+
+
+class LLMReviewerSelector:
+    def __init__(self, backend: LLMBackend | None = None) -> None:
+        self._backend = backend
+        self._fallback = ReviewerSelector()
+        self.mode = "llm" if backend is not None else "fallback: deterministic"
+
+    def select(self, diff: Diff, registry: Registry, repo: str) -> List[Selection]:
+        if self._backend is None:
+            selections = self._fallback.select(diff, registry, repo)
+            return [
+                Selection(reviewer=selection.reviewer, reason="fallback: deterministic")
+                for selection in selections
+            ]
+
+        prompt = build_selector_prompt(diff, registry, repo)
+        response = self._backend.complete(LLMRequest(prompt=prompt))
+        reviewer_ids = json.loads(response)
+        selections: List[Selection] = []
+        for reviewer_id in reviewer_ids:
+            reviewer = registry.reviewers.get(reviewer_id)
+            if reviewer is None:
+                raise ValueError(f"LLM selected unknown reviewer '{reviewer_id}'")
+            selections.append(Selection(reviewer=reviewer, reason="llm"))
+        return selections
 
 
 def expand_collections(

@@ -83,3 +83,18 @@ def assemble_prompts(reviewers: Iterable[Reviewer], diff: Diff) -> List[PromptBu
             )
         )
     return bundles
+
+
+def build_final_prompt(bundles: Iterable[PromptBundle]) -> str:
+    sections: List[str] = []
+    sections.append(
+        "You are the final review agent. Synthesize findings from the reviewer contexts below."
+    )
+    sections.append(
+        "Return findings as a JSON array of objects with fields: reviewer, rule_id, file, "
+        "line_range, severity, message, suggestion, confidence."
+    )
+    for bundle in bundles:
+        sections.append(f"Reviewer: {bundle.reviewer.id} ({bundle.reviewer.display_name})")
+        sections.append(bundle.prompt)
+    return "\n\n".join(sections).strip()

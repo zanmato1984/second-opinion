@@ -9,7 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from core.assembler import assemble_prompts
+from core.assembler import assemble_prompts, build_final_prompt
 from core.diff_parser import parse_unified_diff
 from core.orchestrator import Orchestrator, OrchestratorConfig
 from core.registry import load_registry
@@ -112,7 +112,10 @@ def main(argv: list[str] | None = None) -> int:
             reviewers = [selection.reviewer for selection in selections]
         reviewers = expand_collections(reviewers, registry, collections or None)
         bundles = assemble_prompts(reviewers, diff)
-        payload = {"bundles": [bundle.to_dict() for bundle in bundles]}
+        payload = {
+            "bundles": [bundle.to_dict() for bundle in bundles],
+            "final_prompt": build_final_prompt(bundles),
+        }
         output_json = json.dumps(payload, indent=2, sort_keys=True)
     else:
         report = orchestrator.run(

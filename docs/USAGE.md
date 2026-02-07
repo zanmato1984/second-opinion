@@ -26,7 +26,7 @@ Select reviewers only:
 python3 -m adapters.cli select --repo pingcap/tidb --diff path/to/patch.diff
 ```
 
-Assemble reviewer prompts deterministically:
+Assemble reviewer prompts deterministically (outputs a `final_prompt` for the final review step):
 
 ```
 python3 -m adapters.cli assemble --repo pingcap/tidb --diff path/to/patch.diff

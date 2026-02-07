@@ -35,6 +35,8 @@ conda run -n base python -m adapters.cli assemble \
   --diff tests/golden_prs/GP0001_deadlock_cpp/patch.diff
 ```
 
+The output includes a `final_prompt` field that is the exact prompt to send to the final review model.
+
 ### 3c) Run the final review
 
 ```

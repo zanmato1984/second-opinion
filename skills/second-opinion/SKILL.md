@@ -23,7 +23,7 @@ conda run -n base python -m adapters.cli --repo pingcap/tidb --diff path/to/patc
 conda run -n base python -m adapters.cli select --repo pingcap/tidb --diff path/to/patch.diff
 ```
 
-- Assemble prompts deterministically:
+- Assemble prompts deterministically (outputs `final_prompt` for the final review step):
 
 ```
 conda run -n base python -m adapters.cli assemble --repo pingcap/tidb --diff path/to/patch.diff
