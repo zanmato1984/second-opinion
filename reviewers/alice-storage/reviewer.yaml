@@ -15,9 +15,6 @@ tags:
   - risk:perf
   - maturity:experimental
 
-budget:
-  max_tokens: 1200
-
 rules:
   - id: SO-STO-001
     severity: medium

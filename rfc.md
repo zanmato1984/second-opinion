@@ -96,7 +96,6 @@ Second Opinion is structured into three layers:
 | - Reviewer Registry        |
 | - Orchestrator             |
 | - Selector                 |
-| - Budget Controller        |
 | - Output Merger            |
 | - Test Harness             |
 +-------------+---------------+
@@ -150,7 +149,6 @@ Collections specify:
 
 - Included reviewers
 - Selection priorities
-- Maximum budgets
 - Preferred reviewer types
 
 ---
@@ -178,7 +176,6 @@ core/
   orchestrator/
   selector/
   merger/
-  budget/
   registry/
 
 adapters/
@@ -221,9 +218,6 @@ tags:
   - scenario:upgrade
   - maturity:stable
 
-budget:
-  max_tokens: 1200
-
 ---
 
 ## Tag Taxonomy
@@ -244,11 +238,10 @@ Tags are flat metadata for filtering, orchestration, and analytics:
 1. Receive diff / PR context
 2. Run deterministic selector rules
 3. Expand via collections if requested
-4. Apply budget constraints
-5. Slice diff for each reviewer
-6. Invoke reviewers
-7. Merge findings
-8. Emit final structured report
+4. Slice diff for each reviewer
+5. Invoke reviewers
+6. Merge findings
+7. Emit final structured report
 
 ---
 
@@ -291,7 +284,6 @@ Assertions include:
 
 - Must-find rules
 - Must-not-find rules
-- Budget ceilings
 - Reviewer count limits
 
 ### Stability Tests
@@ -391,7 +383,6 @@ This project’s concepts are intentionally introduced in ways that **invite par
 - IDE adapters
 - Metrics
 - Collections
-- Budget enforcement
 
 ### Phase 3
 

@@ -1,6 +1,5 @@
 id: tiflash-pack
 reviewers:
   - concurrency-safety
-max_tokens: 1800
 preferred_types:
   - domain

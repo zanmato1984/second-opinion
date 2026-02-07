@@ -73,7 +73,6 @@ def load_collections(collections_root: Path) -> Dict[str, Collection]:
         collection = Collection(
             id=collection_id,
             reviewers=list(reviewers),
-            max_tokens=raw.get("max_tokens"),
             preferred_types=list(raw.get("preferred_types") or []),
         )
         if collection.id in collections:

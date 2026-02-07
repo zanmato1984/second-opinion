@@ -19,9 +19,6 @@ class Scope:
     paths_exclude: List[str] = field(default_factory=list)
 
 
-@dataclass(frozen=True)
-class Budget:
-    max_tokens: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -43,7 +40,6 @@ class Reviewer:
     description: str
     scopes: Scope
     tags: List[str] = field(default_factory=list)
-    budget: Budget = field(default_factory=Budget)
     rules: List[Rule] = field(default_factory=list)
     path: Optional[Path] = None
 
@@ -93,7 +89,6 @@ class ReviewReport:
 class Collection:
     id: str
     reviewers: List[str]
-    max_tokens: Optional[int] = None
     preferred_types: List[str] = field(default_factory=list)
 
 
@@ -109,12 +104,6 @@ def build_scope(raw: Dict[str, Any]) -> Scope:
         paths_include=_as_list(raw.get("paths_include")),
         paths_exclude=_as_list(raw.get("paths_exclude")),
     )
-
-
-def build_budget(raw: Optional[Dict[str, Any]]) -> Budget:
-    if not raw:
-        return Budget()
-    return Budget(max_tokens=raw.get("max_tokens"))
 
 
 def build_rules(raw: Optional[Iterable[Dict[str, Any]]]) -> List[Rule]:
@@ -150,7 +139,6 @@ def build_reviewer(raw: Dict[str, Any], path: Optional[Path] = None) -> Reviewer
     description = raw.get("description") or ""
     scopes = build_scope(raw.get("scopes", {}))
     tags = _as_list(raw.get("tags"))
-    budget = build_budget(raw.get("budget"))
     rules = build_rules(raw.get("rules"))
     return Reviewer(
         id=reviewer_id,
@@ -160,7 +148,6 @@ def build_reviewer(raw: Dict[str, Any], path: Optional[Path] = None) -> Reviewer
         description=description,
         scopes=scopes,
         tags=tags,
-        budget=budget,
         rules=rules,
         path=path,
     )

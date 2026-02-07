@@ -14,9 +14,6 @@ tags:
   - scenario:upgrade
   - maturity:experimental
 
-budget:
-  max_tokens: 1200
-
 rules:
   - id: SO-CONC-001
     severity: high

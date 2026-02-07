@@ -32,12 +32,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Comma-separated collection IDs to include",
     )
     parser.add_argument(
-        "--max-tokens",
-        type=int,
-        default=None,
-        help="Global token budget for reviewer prompts",
-    )
-    parser.add_argument(
         "--repo-root",
         default=".",
         help="Repository root containing reviewers/ and collections/",
@@ -76,7 +70,6 @@ def main(argv: list[str] | None = None) -> int:
         diff_text=diff_text,
         repo=args.repo,
         collection_ids=collections if collections else None,
-        max_tokens=args.max_tokens,
     )
 
     output_json = json.dumps(report.to_dict(), indent=2, sort_keys=True)

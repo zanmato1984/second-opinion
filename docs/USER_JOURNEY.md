@@ -57,14 +57,13 @@ Run tests again to validate the new reviewer.
 
 ## 6) Add a collection
 
-Edit or add `collections/<collection-id>.yaml` with reviewer IDs and budgets:
+Edit or add `collections/<collection-id>.yaml` with reviewer IDs:
 
 ```
 id: release-safety-pack
 reviewers:
   - concurrency-safety
   - io-safety
-max_tokens: 2000
 preferred_types:
   - domain
 ```
