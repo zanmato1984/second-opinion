@@ -41,27 +41,6 @@ def validate_reviewer(reviewer: Reviewer) -> List[ValidationError]:
     if not reviewer.type:
         errors.append(ValidationError(reviewer.id, "type is required"))
 
-    rule_ids = set()
-    for rule in reviewer.rules:
-        if rule.id in rule_ids:
-            errors.append(ValidationError(reviewer.id, f"Duplicate rule id '{rule.id}'"))
-        rule_ids.add(rule.id)
-        if not (0.0 <= rule.confidence <= 1.0):
-            errors.append(
-                ValidationError(
-                    reviewer.id, f"Rule '{rule.id}' confidence must be between 0 and 1"
-                )
-            )
-        if rule.pattern:
-            try:
-                re.compile(rule.pattern)
-            except re.error as exc:
-                errors.append(
-                    ValidationError(
-                        reviewer.id, f"Rule '{rule.id}' has invalid pattern: {exc}"
-                    )
-                )
-
     for tag in reviewer.tags:
         if not _TAG_RE.match(tag):
             errors.append(

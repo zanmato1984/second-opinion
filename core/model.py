@@ -5,9 +5,6 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 
-SEVERITY_LEVELS = {"info", "low", "medium", "high", "critical"}
-
-
 class ReviewerConfigError(RuntimeError):
     pass
 
@@ -22,16 +19,6 @@ class Scope:
 
 
 @dataclass(frozen=True)
-class Rule:
-    id: str
-    severity: str
-    message: str
-    suggestion: Optional[str] = None
-    pattern: Optional[str] = None
-    confidence: float = 0.5
-
-
-@dataclass(frozen=True)
 class Reviewer:
     id: str
     type: str
@@ -40,7 +27,6 @@ class Reviewer:
     description: str
     scopes: Scope
     tags: List[str] = field(default_factory=list)
-    rules: List[Rule] = field(default_factory=list)
     path: Optional[Path] = None
 
 
@@ -106,29 +92,6 @@ def build_scope(raw: Dict[str, Any]) -> Scope:
     )
 
 
-def build_rules(raw: Optional[Iterable[Dict[str, Any]]]) -> List[Rule]:
-    rules: List[Rule] = []
-    if not raw:
-        return rules
-    for entry in raw:
-        rule = Rule(
-            id=str(entry.get("id", "")),
-            severity=str(entry.get("severity", "")),
-            message=str(entry.get("message", "")),
-            suggestion=entry.get("suggestion"),
-            pattern=entry.get("pattern"),
-            confidence=float(entry.get("confidence", 0.5)),
-        )
-        if not rule.id:
-            raise ReviewerConfigError("Rule id is required")
-        if rule.severity not in SEVERITY_LEVELS:
-            raise ReviewerConfigError(
-                f"Rule '{rule.id}' uses invalid severity '{rule.severity}'"
-            )
-        rules.append(rule)
-    return rules
-
-
 def build_reviewer(raw: Dict[str, Any], path: Optional[Path] = None) -> Reviewer:
     reviewer_id = raw.get("id")
     if not reviewer_id:
@@ -139,7 +102,6 @@ def build_reviewer(raw: Dict[str, Any], path: Optional[Path] = None) -> Reviewer
     description = raw.get("description") or ""
     scopes = build_scope(raw.get("scopes", {}))
     tags = _as_list(raw.get("tags"))
-    rules = build_rules(raw.get("rules"))
     return Reviewer(
         id=reviewer_id,
         type=reviewer_type,
@@ -148,6 +110,5 @@ def build_reviewer(raw: Dict[str, Any], path: Optional[Path] = None) -> Reviewer
         description=description,
         scopes=scopes,
         tags=tags,
-        rules=rules,
         path=path,
     )

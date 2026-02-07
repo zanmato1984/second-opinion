@@ -289,11 +289,11 @@ Second Opinion treats prompts as code.
 
 ### Selector Unit Tests
 
-Deterministic tests verifying reviewer selection from diff metadata.
+Tests validate selector prompt structure and JSON I/O contracts using fixtures or mock LLM backends.
 
 ### Reviewer Tests
 
-Small synthetic patches asserting rule detection.
+Synthetic patches asserting expected findings from the final review step.
 
 ### Golden PR Regression Suite
 
@@ -303,8 +303,8 @@ tests/golden_prs/GP0001_deadlock_cpp/
 
 Assertions include:
 
-- Must-find rules
-- Must-not-find rules
+- Must-find findings
+- Must-not-find findings
 - Reviewer count limits
 
 ### Stability Tests
@@ -360,7 +360,6 @@ This project’s concepts are intentionally introduced in ways that **invite par
 
 - Core engine independent of agent platforms
 - Adapters provide integration
-- Portable “single prompt” fallback generation
 - Contract-first design
 
 ---

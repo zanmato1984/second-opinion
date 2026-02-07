@@ -39,7 +39,7 @@ conda run -n base python -m adapters.cli --repo pingcap/tidb --diff path/to/patc
 ## Add or Update a Reviewer
 
 - Create a new reviewer folder under `reviewers/<reviewer-id>/`.
-- Add `reviewer.yaml` with `id`, `type`, `owners`, `display_name`, `description`, `scopes`, `tags`, `rules`.
+- Add `reviewer.yaml` with `id`, `type`, `owners`, `display_name`, `description`, `scopes`, `tags`.
 - Add `prompt.md` and `rules.md`.
 - Keep regex patterns YAML-safe (single quotes for backslashes).
 - Add or update tests under `tests/` or `tests/golden_prs/`.

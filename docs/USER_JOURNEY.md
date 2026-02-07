@@ -71,7 +71,7 @@ Expected behavior:
 mkdir -p reviewers/io-safety
 ```
 
-2. Add `reviewer.yaml` with scopes, tags, and rules.
+2. Add `reviewer.yaml` with scopes, tags, and metadata.
 3. Add `prompt.md` and `rules.md`.
 4. Add a new golden PR diff under `tests/golden_prs/`.
 5. Update or create tests to lock in detection.

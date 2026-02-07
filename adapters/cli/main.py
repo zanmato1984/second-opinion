@@ -11,9 +11,10 @@ if str(REPO_ROOT) not in sys.path:
 
 from core.assembler import assemble_prompts, build_final_prompt
 from core.diff_parser import parse_unified_diff
+from core.llm import MockBackend, NullBackend
 from core.orchestrator import Orchestrator, OrchestratorConfig
 from core.registry import load_registry
-from core.selector import ReviewerSelector, expand_collections
+from core.selector import LLMReviewerSelector, expand_collections
 
 
 def _read_diff(path: str | None) -> str:
@@ -58,11 +59,29 @@ def build_parser() -> argparse.ArgumentParser:
         default="-",
         help="Output path for JSON report (or '-' for stdout)",
     )
+    parser.add_argument(
+        "--selector-backend",
+        default="mock",
+        choices=["mock", "null"],
+        help="LLM backend for reviewer selection",
+    )
+    parser.add_argument(
+        "--final-backend",
+        default="mock",
+        choices=["mock", "null"],
+        help="LLM backend for final review",
+    )
     return parser
 
 
 def _parse_csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _resolve_backend(name: str) -> MockBackend | NullBackend:
+    if name == "mock":
+        return MockBackend()
+    return NullBackend()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -74,7 +93,14 @@ def main(argv: list[str] | None = None) -> int:
     schema_path = Path(args.schema)
     if not schema_path.is_absolute():
         schema_path = repo_root / schema_path
-    config = OrchestratorConfig(repo_root=repo_root, schema_path=schema_path)
+    selector_backend = _resolve_backend(args.selector_backend)
+    final_backend = _resolve_backend(args.final_backend)
+    config = OrchestratorConfig(
+        repo_root=repo_root,
+        schema_path=schema_path,
+        selector_backend=selector_backend,
+        final_backend=final_backend,
+    )
     orchestrator = Orchestrator(registry, config)
 
     diff_text = _read_diff(args.diff)
@@ -86,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if command == "select":
         diff = parse_unified_diff(diff_text)
-        selector = ReviewerSelector()
+        selector = LLMReviewerSelector(selector_backend)
         selections = selector.select(diff, registry, args.repo)
         reviewers = [selection.reviewer for selection in selections]
         reviewers = expand_collections(reviewers, registry, collections or None)
@@ -107,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
                     raise SystemExit(f"Unknown reviewer '{reviewer_id}'")
                 reviewers.append(reviewer)
         else:
-            selector = ReviewerSelector()
+            selector = LLMReviewerSelector(selector_backend)
             selections = selector.select(diff, registry, args.repo)
             reviewers = [selection.reviewer for selection in selections]
         reviewers = expand_collections(reviewers, registry, collections or None)

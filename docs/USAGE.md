@@ -37,3 +37,13 @@ Output to a file:
 ```
 python3 -m adapters.cli --repo pingcap/tidb --diff path/to/patch.diff --output out.json
 ```
+
+Specify LLM backends (defaults to `mock` for local testing):
+
+```
+python3 -m adapters.cli review \
+  --repo pingcap/tidb \
+  --diff path/to/patch.diff \
+  --selector-backend mock \
+  --final-backend mock
+```

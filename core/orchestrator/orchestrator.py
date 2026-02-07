@@ -10,16 +10,19 @@ from jsonschema import Draft7Validator
 from core.diff_parser import parse_unified_diff
 from core.assembler.assembler import assemble_prompts
 from core.final_review.final_review import LLMFinalReviewer
+from core.llm import LLMBackend
 from core.merger.merger import merge_findings
 from core.model import Finding, ReviewReport
 from core.registry import Registry
-from core.selector.selector import LLMReviewerSelector, ReviewerSelector, expand_collections
+from core.selector.selector import LLMReviewerSelector, expand_collections
 
 
 @dataclass
 class OrchestratorConfig:
     repo_root: Path
     schema_path: Path
+    selector_backend: LLMBackend
+    final_backend: LLMBackend
 
 
 class Orchestrator:
@@ -41,7 +44,7 @@ class Orchestrator:
         collection_ids: Optional[Iterable[str]] = None,
     ) -> ReviewReport:
         diff = parse_unified_diff(diff_text)
-        selector = LLMReviewerSelector()
+        selector = LLMReviewerSelector(self._config.selector_backend)
         selections = selector.select(diff, self._registry, repo)
         selected_reviewers = [selection.reviewer for selection in selections]
         selected_reviewers = expand_collections(
@@ -49,7 +52,7 @@ class Orchestrator:
         )
 
         bundles = assemble_prompts(selected_reviewers, diff)
-        final_reviewer = LLMFinalReviewer()
+        final_reviewer = LLMFinalReviewer(self._config.final_backend)
         findings = final_reviewer.review(bundles)
 
         merged_findings = merge_findings(findings)

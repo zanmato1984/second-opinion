@@ -6,31 +6,14 @@ from typing import Iterable, List
 from core.assembler.assembler import PromptBundle, build_final_prompt
 from core.llm import LLMBackend, LLMRequest
 from core.model import Finding
-from core.orchestrator.runner import run_reviewer_on_added_lines
-
-
-class RuleFinalReviewer:
-    mode = "rule"
-
-    def review(self, bundles: Iterable[PromptBundle]) -> List[Finding]:
-        findings: List[Finding] = []
-        for bundle in bundles:
-            findings.extend(
-                run_reviewer_on_added_lines(bundle.reviewer, bundle.added_lines_by_file)
-            )
-        return findings
 
 
 class LLMFinalReviewer:
-    def __init__(self, backend: LLMBackend | None = None) -> None:
+    def __init__(self, backend: LLMBackend) -> None:
         self._backend = backend
-        self._fallback = RuleFinalReviewer()
-        self.mode = "llm" if backend is not None else "fallback: rule"
+        self.mode = "llm"
 
     def review(self, bundles: Iterable[PromptBundle]) -> List[Finding]:
-        if self._backend is None:
-            return self._fallback.review(bundles)
-
         prompt = build_final_prompt(bundles)
         response = self._backend.complete(LLMRequest(prompt=prompt))
         raw_findings = json.loads(response)
@@ -51,6 +34,6 @@ class LLMFinalReviewer:
         return findings
 
 
-def run_final_review(bundles: Iterable[PromptBundle]) -> List[Finding]:
-    reviewer = RuleFinalReviewer()
+def run_final_review(bundles: Iterable[PromptBundle], backend: LLMBackend) -> List[Finding]:
+    reviewer = LLMFinalReviewer(backend)
     return reviewer.review(bundles)
