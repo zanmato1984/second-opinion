@@ -19,12 +19,33 @@ conda run -n base python -m pip install pytest jsonschema PyYAML
 
 Use the built-in golden diff to see the system end-to-end:
 
+### 3a) Select reviewers
+
 ```
-conda run -n base python -m adapters.cli --repo pingcap/tidb --diff tests/golden_prs/GP0001_deadlock_cpp/patch.diff
+conda run -n base python -m adapters.cli select \
+  --repo pingcap/tidb \
+  --diff tests/golden_prs/GP0001_deadlock_cpp/patch.diff
+```
+
+### 3b) Assemble prompts
+
+```
+conda run -n base python -m adapters.cli assemble \
+  --repo pingcap/tidb \
+  --diff tests/golden_prs/GP0001_deadlock_cpp/patch.diff
+```
+
+### 3c) Run the final review
+
+```
+conda run -n base python -m adapters.cli review \
+  --repo pingcap/tidb \
+  --diff tests/golden_prs/GP0001_deadlock_cpp/patch.diff
 ```
 
 Expected behavior:
 - The selector picks `concurrency-safety` based on scope/path filters.
+- The prompt assembler includes reviewer prompt + diff slice deterministically.
 - The reviewer rule matches back-to-back `lock()` calls.
 - A JSON report is printed that conforms to `schema/review_output.schema.json`.
 
@@ -84,4 +105,4 @@ conda run -n base python -m adapters.cli \
 
 ---
 
-This journey mirrors typical daily usage: diff → selector → reviewer(s) → merged report → tests.
+This journey mirrors typical daily usage: diff → select → assemble → review → tests.

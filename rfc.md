@@ -192,6 +192,8 @@ collections/
   tidb-core-pack.yaml
 
 core/
+  assembler/
+  final_review/
   orchestrator/
   selector/
   merger/

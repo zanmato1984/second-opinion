@@ -7,14 +7,26 @@ description: "Composable AI code review workflow for the Second Opinion reposito
 
 ## Overview
 
-Run the local Second Opinion pipeline against diffs, manage reviewer metadata, and keep tests and schema in sync.
+Run the local Second Opinion pipeline against diffs, manage reviewer metadata, and keep tests and schema in sync. The pipeline is a three-skill chain: select reviewers → assemble prompts → final review.
 
 ## Quick Start (Run a Review)
 
-- Run the CLI on a diff file:
+- Run the full review pipeline (default `review` command):
 
 ```
 conda run -n base python -m adapters.cli --repo pingcap/tidb --diff path/to/patch.diff
+```
+
+- Select reviewers only:
+
+```
+conda run -n base python -m adapters.cli select --repo pingcap/tidb --diff path/to/patch.diff
+```
+
+- Assemble prompts deterministically:
+
+```
+conda run -n base python -m adapters.cli assemble --repo pingcap/tidb --diff path/to/patch.diff
 ```
 
 - Add a collection (bundle of reviewers):
