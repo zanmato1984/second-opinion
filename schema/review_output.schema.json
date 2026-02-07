@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Second Opinion Review Report",
+  "type": "object",
+  "required": ["schema_version", "repo", "reviewers", "findings", "stats"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "repo": {"type": "string"},
+    "reviewers": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "reviewer",
+          "rule_id",
+          "file",
+          "line_range",
+          "severity",
+          "message",
+          "suggestion",
+          "confidence"
+        ],
+        "properties": {
+          "reviewer": {"type": "string"},
+          "rule_id": {"type": "string"},
+          "file": {"type": "string"},
+          "line_range": {"type": "string"},
+          "severity": {
+            "type": "string",
+            "enum": ["info", "low", "medium", "high", "critical"]
+          },
+          "message": {"type": "string"},
+          "suggestion": {"type": ["string", "null"]},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "stats": {"type": "object"}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,27 @@
+id: alice-storage
+type: person
+owners: ["alice"]
+display_name: "Alice (Storage)"
+description: "Storage correctness and performance review."
+
+scopes:
+  repos: ["pingcap/tidb", "pingcap/tiflash"]
+  paths_include: ["**/storage/**"]
+
+tags:
+  - lang:cpp
+  - scope:storage
+  - risk:correctness
+  - risk:perf
+  - maturity:experimental
+
+budget:
+  max_tokens: 1200
+
+rules:
+  - id: SO-STO-001
+    severity: medium
+    message: "Direct file IO added in storage path; verify async handling and error checks."
+    suggestion: "Route IO through the storage scheduler or add explicit error handling."
+    pattern: 'std::fstream|fopen\('
+    confidence: 0.45

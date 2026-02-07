@@ -1,0 +1,8 @@
+id: tidb-core-pack
+reviewers:
+  - concurrency-safety
+  - alice-storage
+max_tokens: 2400
+preferred_types:
+  - domain
+  - person
