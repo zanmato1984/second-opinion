@@ -24,7 +24,6 @@ The system emphasizes:
 - Modular reviewer contributions
 - Clear ownership and credit attribution
 - Testability and regression protection
-- Cost and latency control
 - Long-term organizational knowledge capture
 
 ---
@@ -296,11 +295,7 @@ Validate output structure, rule IDs, ownership metadata.
 
 ### Performance Tests
 
-Measure:
-
-- Token usage
-- Latency
-- Findings per token
+Measure stability under load.
 
 ---
 
@@ -310,8 +305,7 @@ Measure:
 - Maturity lifecycle: experimental → stable → deprecated
 - Periodic pruning
 - Steering group for reviewer acceptance
-- Metrics dashboard:
-  - invocation counts
+- Review quality signals:
   - bug detection rate
   - false positives
   - reviewer popularity
