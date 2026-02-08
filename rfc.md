@@ -1,4 +1,4 @@
-# RFC: Second Opinion — A Composable AI Code Review Skill for Agentic Development
+# RFC: Reviewer-Centric Prompt Compiler for AI Code Review
 
 ## Status
 
@@ -10,408 +10,390 @@ Rossi Sun, contributors
 
 ---
 
-## Summary
+## Overview
 
-Second Opinion is a portable **AI-powered code review system** designed to integrate into mainstream agentic coding environments.
+This document defines a reviewer-centric, prompt-only AI code review system.
 
-Its core objective is to **use LLM/agent reviewers to deliver higher-accuracy and more extensive reviews**, by encoding **experienced engineers’ review knowledge** into modular, reusable reviewer units.
+The project treats real-world engineers as first-class virtual reviewers.  
+Each reviewer encodes their review knowledge as structured, tagged criteria.  
+A multi-stage prompt pipeline detects relevant tags from code changes, selects matching reviewers, extracts applicable criteria, composes a final review prompt, and produces an attributable review report.
 
-Rather than relying on a monolithic prompt dump, Second Opinion composes multiple specialized virtual reviewers—each representing a human expert, a subsystem, a problem domain, or a risk area—into a coordinated review pipeline that encourages contribution and preserves attribution.
+The system is designed to:
 
-The system emphasizes:
-
-- Local-first execution
-- Modular reviewer contributions
-- Clear ownership and credit attribution
-- Testability and regression protection
-- Long-term organizational knowledge capture
-
-**Target approach (updated):** a three-skill pipeline that keeps orchestration explicit and contribution-friendly:
-
-1. **Reviewer Selector (LLM skill)** — chooses reviewers using reviewer definitions, metadata, and tags.
-2. **Prompt Assembler (deterministic skill)** — programmatically assembles reviewer prompts and diff slices from the selected list with supervision for determinism.
-3. **Final Review (LLM skill)** — runs the assembled prompt and emits structured findings.
-
----
-
-## Motivation
-
-Large-scale systems such as TiDB, TiKV, and TiFlash exhibit:
-
-- Cross-component interactions
-- Subtle performance regressions
-- Concurrency and correctness hazards
-- Operational upgrade risks
-- Long-tail failure modes discovered only in production
-
-Experienced reviewers internalize heuristics for detecting these risks, but:
-
-- These heuristics are distributed across individuals
-- Stored privately as ad-hoc prompts
-- Difficult to discover
-- Impossible to evaluate systematically
-- Not reusable across the organization
-
-Second Opinion aims to institutionalize this expertise by encoding it into composable AI reviewers that every developer can invoke locally or through automation—turning human review heuristics into **shared, testable, and credited AI review modules** rather than one-off prompt dumps.
+- Preserve strong contributor identity and credit
+- Avoid monolithic prompts
+- Enable explainable reviewer selection
+- Support deterministic guardrails inside a prompt-only workflow
+- Integrate easily with agentic coding tools such as Codex CLI and Claude Code CLI
+- Remain portable across environments
 
 ---
 
 ## Goals
 
-- Provide a high-quality **LLM/agent-based** code review capability across PingCAP
-- Capture experienced reviewers’ heuristics into modular reviewers for higher accuracy and coverage
-- Allow experts to contribute isolated reviewer skills without creating a prompt dump
-- Attribute ownership and credit
-- Support automatic reviewer selection
-- Separate reviewer selection, prompt assembly, and final review into clear skills
-- Remain tool- and platform-agnostic
-- Support regression testing
-- Enable gradual evolution and retirement of reviewers
-- Operate locally where possible
+- Encode senior engineers’ review heuristics in reusable form
+- Select reviewers dynamically based on code changes
+- Compile a tailored review prompt for each change
+- Attribute findings back to specific reviewers and rules
+- Keep the system prompt-first and tool-light
+- Support regression testing through prompt artifacts
+- Control prompt growth through tagging and budgeting
 
 ---
 
 ## Non-Goals
 
-- Replacing human code review
-- Building a full IDE or coding agent
-- Acting as a static analyzer replacement
-- Creating a monolithic prompt dump or central “mega-prompt”
-- Binding to a single LLM vendor or IDE
+- Replacing human reviewers
+- Building a full IDE
+- Implementing static analysis engines
+- Hard-coding reviewer selection logic in code
+- Binding to a single LLM provider
 
 ---
 
-## High-Level Architecture
+## Conceptual Model
 
-Second Opinion is structured into three layers:
+The system operates as a Prompt Compiler Pipeline.
 
-+-----------------------------+
-| Agentic Coding Environment |
-| (Cursor / Claude / IDE...) |
-+-------------+---------------+
-              |
-              v
-+-----------------------------+
-| Adapter Layer              |
-| (CLI / MCP / Plugin / Bot) |
-+-------------+---------------+
-              |
-              v
-+-----------------------------+
-| Core Engine                |
-| - Reviewer Registry        |
-| - Reviewer Selector (LLM)  |
-| - Prompt Assembler         |
-| - Final Review (LLM)       |
-| - Output Merger            |
-| - Test Harness             |
-+-------------+---------------+
-              |
-              v
-+-----------------------------+
-| Reviewer Modules           |
-| (Prompts + Metadata +     |
-| Tests + Ownership)        |
-+-----------------------------+
+Given a diff and repository context:
+
+1. Detect signals and derive tags
+2. Match tags to reviewers
+3. Select applicable rules from reviewers’ criteria
+4. Deduplicate and order rules
+5. Assemble a final review prompt
+6. Execute a single review pass
+7. Produce structured, attributable output
+
+All stages communicate through structured prompt outputs.
 
 ---
 
-## Core Abstractions
+## Reviewer-Centric Organization
 
-### Reviewer (Primary Unit)
+Each reviewer corresponds to a real engineer.
 
-A Reviewer is the smallest composable review unit.
-
-A reviewer may represent:
-
-- A human expert (type: person)
-- A subsystem (type: component)
-- A project (type: project)
-- A functional feature (type: feature)
-- A problem domain (type: domain)
-
-Each reviewer:
-
-- Is independently invokable
-- Has explicit owners
-- Declares scope and applicability
-- Emits structured findings
-- Has tests
-- Is versioned and governable
-
----
-
-### Collection (Consumption-Level Unit)
-
-A Collection is a curated bundle of reviewers intended for common use cases.
-
-Examples:
-
-- tidb-core-pack
-- tiflash-pack
-- release-safety-pack
-- performance-pack
-
-Collections specify:
-
-- Included reviewers
-- Selection priorities
-- Preferred reviewer types
-
----
-
-## Skill Chain (Target Implementation)
-
-Second Opinion is implemented as a **three-skill chain** to keep responsibilities clean and contribution-friendly:
-
-1. **Reviewer Selector (LLM skill)** — chooses reviewers from the registry using definitions, metadata, and tags.
-2. **Prompt Assembler (deterministic skill)** — programmatically composes reviewer prompts + diff slices with deterministic ordering and supervision.
-3. **Final Review (LLM skill)** — executes the assembled prompt and emits structured findings.
-
-This separation ensures reviewer contributions stay modular and credited, while deterministic assembly avoids prompt sprawl.
-
----
-
-## Repository Layout
-
-pingcap/second-opinion
+Repository structure:
 
 reviewers/
-  concurrency-safety/
-    reviewer.yaml
-    prompt.md
-    rules.md
-    tests/
-  alice-storage/
-    reviewer.yaml
-    prompt.md
-    tests/
+  alice/
+    criteria.md
+    meta.yaml
+  bob/
+    criteria.md
+    meta.yaml
 
-collections/
-  tiflash-pack.yaml
-  tidb-core-pack.yaml
+Each reviewer owns:
 
-core/
-  assembler/
-  final_review/
-  orchestrator/
-  selector/
-  merger/
-  registry/
-
-adapters/
-  cli/
-  mcp/
-  github-app/
-  cursor/
-
-schema/
-  review_output.schema.json
-
-tests/
-  golden_prs/
-  selector/
-  stability/
-
-docs/
+- Their criteria rules
+- Preferred tags
+- Excluded tags
+- Review scope
+- Participation limits
 
 ---
 
-## Reviewer Metadata Format
+## Reviewer Kinds
 
-Each reviewer directory contains a reviewer.yaml file:
+The system supports multiple reviewer kinds:
 
-id: alice-storage
-type: person
-owners: ["alice"]
-display_name: "Alice (Storage)"
-description: "Storage correctness and performance review"
+- person — real engineers encoding their heuristics
+- domain — subject-matter expertise (e.g., concurrency, performance)
+- component — subsystem focus (e.g., TiKV, DDL)
+- process — full end-to-end review workflows and methodologies
 
-scopes:
-  repos: ["pingcap/tidb", "pingcap/tiflash"]
-  paths_include: ["**/storage/**"]
+Process reviewers represent strict review philosophies or deep audit workflows rather than individual risk areas.
 
-tags:
-  - lang:cpp
-  - scope:tiflash
+---
+
+## Reviewer Criteria Format
+
+Reviewer knowledge is expressed as atomic rules or workflows.
+
+Each rule contains:
+
+- rule_id
+- description
+- tags
+- rationale
+- examples (optional)
+
+Example:
+
+- rule_id: ALICE-CONCURRENCY-001
+  description: Ensure map mutations in Go are guarded by mutexes.
+  tags:
+    - lang:go
+    - risk:concurrency
+    - scope:tidb
+  rationale: Production incidents caused by unsafe map writes.
+
+Rules are immutable during compilation.
+
+---
+
+## Process-Style Reviewer Model
+
+Process reviewers define structured, multi-step review workflows.
+
+They are activated conditionally based on tags and signals.
+
+Process reviewer metadata:
+
+id: re2
+kind: process
+owner: alice
+description: Invariant-first adversarial deep review workflow
+preferred_tags:
   - risk:correctness
-  - risk:perf
   - scenario:upgrade
-  - maturity:stable
+activation:
+  min_tags:
+    - risk:concurrency
+    - risk:correctness
+  min_files: 3
+
+When selected:
+
+- The entire workflow block is injected into the compiled prompt
+- Steps must be executed in order
+- Output must reference workflow stages
+- Process reviewers are attributed separately from atomic-rule reviewers
 
 ---
 
 ## Tag Taxonomy
 
-Tags are flat metadata for filtering, orchestration, and analytics:
+Tags form the primary indexing mechanism.
 
-- lang:*
-- scope:*
-- risk:*
-- scenario:*
-- depth:*
-- maturity:*
+Only tags from the controlled vocabulary may be used.
 
----
+### Dimensions
 
-## Orchestration Flow
+- lang: go | cpp | rust | sql
+- scope: tidb | tikv | tiflash | tools
+- risk: correctness | concurrency | perf | security | compat | ops
+- theme: api | error-handling | testing | build | observability
+- scenario: upgrade | rollback | cloud | multi-tenant
 
-1. Receive diff / PR context
-2. Run **Reviewer Selector (LLM)** using reviewer definitions, metadata, and tags
-3. Expand via collections if requested
-4. Run **Prompt Assembler** to deterministically slice and compose reviewer prompts
-5. Run **Final Review (LLM)** on the assembled prompt to emit findings
-6. Merge findings and validate schema
-7. Emit final structured report
+New tags require taxonomy updates.
 
 ---
 
-## Output Contract
+## Prompt Pipeline
 
-All reviewers must emit JSON conforming to:
+The system uses three main prompts.
 
-- reviewer
-- rule_id
+---
+
+### Stage 1 — Tagger Prompt
+
+Input:
+
+- diff
+- changed file paths
+- repository metadata
+
+Output JSON:
+
+{
+  "signals": [
+    {"evidence": "pkg/ddl/ddl.go", "reason": "DDL path"},
+    {"evidence": "sync.Mutex", "reason": "locking primitive"}
+  ],
+  "tags": [
+    {"tag": "scope:tidb", "why": "ddl path"},
+    {"tag": "risk:concurrency", "why": "mutex usage"}
+  ]
+}
+
+---
+
+### Stage 2 — Compiler Prompt
+
+Input:
+
+- derived tags
+- reviewer metadata
+- reviewer criteria
+
+Responsibilities:
+
+- Match tags to reviewers
+- Select relevant atomic rules
+- Deduplicate overlapping rules
+- Insert full process workflows when triggered
+- Assemble the final review instructions
+- Preserve provenance for every rule and workflow
+
+Output JSON:
+
+{
+  "selected_reviewers": ["alice", "re2"],
+  "rules_used": {
+    "alice": ["ALICE-CONCURRENCY-001"]
+  },
+  "process_reviewers": ["re2"],
+  "compiled_prompt": "...",
+  "provenance": [
+    {"rule_id": "ALICE-CONCURRENCY-001", "reviewer": "alice"},
+    {"process": "re2", "triggered_by": ["risk:correctness"]}
+  ]
+}
+
+---
+
+### Stage 3 — Review Prompt
+
+Input:
+
+- compiled_prompt
+- diff
+
+Output:
+
+- review.md
+- review.json
+
+Each finding must include:
+
 - file
-- line_range
+- lines
+- rule_id or workflow_stage
+- reviewer
+- tags
 - severity
 - message
-- suggestion
-- confidence
 
-Validated via JSON schema.
+---
+
+## Attribution Model
+
+Contribution is derived from:
+
+- Which rules produced findings
+- Which reviewers authored those rules
+- Which tags caused selection
+- Which process workflows were triggered
+
+No subjective scoring without references.
+
+---
+
+## Prompt-Only Guardrails
+
+To maintain stability:
+
+- Temperature set to zero for selection and compilation
+- Strict JSON schemas for all stages
+- Maximum reviewers per run
+- Maximum atomic rules per reviewer
+- Mandatory provenance blocks
+- Rules must be inserted verbatim
+- Process workflows cannot be partially injected
+- Only selection, ordering, and deduplication allowed
+
+---
+
+## Repository Artifacts
+
+Minimal structure:
+
+RFC.md
+taxonomy.md
+reviewers/
+  alice/criteria.md
+  re2/criteria.md
+prompts/
+  tagger.prompt
+  compiler.prompt
+  reviewer.prompt
+schemas/
+  selection.schema.json
+  compile.schema.json
+  review.schema.json
+examples/
 
 ---
 
 ## Testing Strategy
 
-Second Opinion treats prompts as code.
+Even in a prompt-only system, regression is required.
 
-### Selector Unit Tests
-
-Tests validate selector prompt structure and JSON I/O contracts using fixtures or mock LLM backends.
-
-### Reviewer Tests
-
-Synthetic patches asserting expected findings from the final review step.
-
-### Golden PR Regression Suite
-
-tests/golden_prs/GP0001_deadlock_cpp/
-  patch.diff
-  expected.json
-
-Assertions include:
-
-- Must-find findings
-- Must-not-find findings
-- Reviewer count limits
-
-### Stability Tests
-
-Run identical input N times; assert variance bounds.
-
-### Schema & Lint Tests
-
-Validate output structure, rule IDs, ownership metadata.
-
-### Performance Tests
-
-Measure stability under load.
+- Golden diffs stored in examples/
+- Expected tag outputs
+- Expected reviewer selections
+- Required rule hits
+- Required process reviewer triggers
+- Drift measurements across repeated runs
+- Manual or scripted replays
 
 ---
 
-## Governance Model
+## Advantages
 
-- Reviewer directories owned via CODEOWNERS
-- Maturity lifecycle: experimental → stable → deprecated
-- Periodic pruning
-- Steering group for reviewer acceptance
-- Review quality signals:
-  - bug detection rate
-  - false positives
-  - reviewer popularity
+- Minimal engineering overhead
+- Strong contributor identity
+- High portability
+- Transparent reasoning chain
+- Modular prompt evolution
+- Easy integration into agentic tools
 
 ---
 
-## Credit & Incentives
+## Risks
 
-- Each reviewer tied to owners
-- Invocation and impact tracked
-- Leaderboards
-- Release credits
-- Documentation acknowledgements
-  
-This project’s concepts are intentionally introduced in ways that **invite participation**: reviewers are small, owned modules with visible attribution. This makes it easy for experienced engineers to contribute their knowledge and be credited, while avoiding a single opaque prompt dump.
+- Reviewer selection drift
+- Token explosion
+- Semantic rewriting of rules
+- Attribution gaming
+- Scaling limits
 
 ---
 
-## Distribution Modes
+## Mitigations
 
-- CLI (second-opinion run)
-- MCP server
-- IDE plugin
-- GitHub App
-- Local daemon
-
----
-
-## Compatibility Strategy
-
-- Core engine independent of agent platforms
-- Adapters provide integration
-- Contract-first design
-
----
-
-## Security & Privacy
-
-- Local-first execution
-- Redaction hooks
-- No training on proprietary code
-- Pluggable model backends
-
----
-
-## Open Questions
-
-- Reviewer quality scoring mechanisms
-- Conflict resolution heuristics
-- Auto-promotion criteria
-- Model backend policy
-- Cross-repo reuse
+- Tight tag governance
+- Atomic rules
+- Prompt budget caps
+- Provenance enforcement
+- Reviewer participation thresholds
+- Fast vs deep modes
 
 ---
 
 ## Phased Rollout
 
-### Phase 1 — MVP
+### Phase 1
 
-- Core orchestrator
-- Portable prompt generation
-- CLI adapter
-- 10 reviewers
-- 20 golden PR tests
+- Five reviewers
+- Thirty rules each
+- Twenty golden diffs
 
 ### Phase 2
 
-- IDE adapters
-- Metrics
-- Collections
+- Reviewer packs
+- Attribution dashboards
+- Tag coverage metrics
 
 ### Phase 3
 
-- CI gates
-- GitHub App
-- Incident-driven feedback loop
+- CI gating
+- Release checks
+- Promotion and demotion workflows
 
 ---
 
-## Appendix: Design Principles
+## Open Questions
 
-- Composable over monolithic
-- Testable over heuristic
-- Governed over organic sprawl
-- Local-first
-- Credit-aware
-- Agent-agnostic
+- Rule lifecycle management
+- Reviewer conflict resolution
+- Taxonomy evolution process
+- Adversarial prompt resistance
+- Long-term scalability
+
+---
+
+## Summary
+
+This project defines a reviewer-centric, tag-driven, prompt-only AI code review compiler that dynamically selects real engineers’ criteria, injects process-style review workflows when needed, and produces attributable, structured review output.

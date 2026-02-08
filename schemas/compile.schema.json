@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "selected_reviewers",
+    "rules_used",
+    "process_reviewers",
+    "compiled_prompt",
+    "provenance"
+  ],
+  "properties": {
+    "selected_reviewers": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "rules_used": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"}
+      }
+    },
+    "process_reviewers": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "compiled_prompt": {"type": "string"},
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule_id": {"type": "string"},
+          "reviewer": {"type": "string"},
+          "process": {"type": "string"},
+          "triggered_by": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

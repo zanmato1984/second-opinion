@@ -1,0 +1,12 @@
+id: alice
+kind: person
+owner: alice
+description: Core storage and concurrency reviewer
+preferred_tags:
+  - risk:concurrency
+  - scope:tidb
+excluded_tags: []
+review_scope:
+  - scope:tidb
+participation:
+  max_rules: 10

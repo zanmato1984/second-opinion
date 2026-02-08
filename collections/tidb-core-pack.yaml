@@ -1,7 +1,0 @@
-id: tidb-core-pack
-reviewers:
-  - concurrency-safety
-  - alice-storage
-preferred_types:
-  - domain
-  - person

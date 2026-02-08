@@ -1,0 +1,12 @@
+id: re2
+kind: process
+owner: alice
+description: Invariant-first adversarial deep review workflow
+preferred_tags:
+  - risk:correctness
+  - scenario:upgrade
+activation:
+  min_tags:
+    - risk:concurrency
+    - risk:correctness
+  min_files: 3

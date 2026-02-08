@@ -1,4 +1,0 @@
-interface:
-  display_name: "Second Opinion"
-  short_description: "Composable AI code review pipeline"
-  default_prompt: "Use -opinion to run the local review pipeline on a diff."

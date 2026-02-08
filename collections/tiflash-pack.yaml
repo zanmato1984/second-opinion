@@ -1,5 +1,0 @@
-id: tiflash-pack
-reviewers:
-  - concurrency-safety
-preferred_types:
-  - domain
