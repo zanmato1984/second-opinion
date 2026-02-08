@@ -7,6 +7,8 @@ description: "Reviewer-centric prompt compiler for AI code review in this reposi
 
 ## Workflow
 
+- This skill is self-contained: all artifacts (taxonomy, prompts, schemas,
+  reviewers, examples, tests) live under this directory.
 - Read `taxonomy.md` to choose tags; only use listed tags.
 - Update reviewer criteria in `reviewers/<id>/criteria.md` and metadata in `reviewers/<id>/meta.yaml`.
 - Edit prompt templates in `prompts/*.prompt` and keep outputs aligned with `schemas/*.schema.json`.
@@ -20,7 +22,8 @@ description: "Reviewer-centric prompt compiler for AI code review in this reposi
 
 ## Validation
 
-- Run `python3 -m unittest discover -s tests`.
+- From this directory: `python3 -m unittest discover -s tests`.
+- From repo root: `python3 -m unittest discover -s skills/second-opinion/tests`.
 
 ## Install the skill
 
