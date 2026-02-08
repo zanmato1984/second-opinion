@@ -25,35 +25,53 @@ def _require_tool(name):
     if shutil.which(name) is None:
         raise unittest.SkipTest(f"Required tool not found: {name}")
 
-
-def _maybe_skip_auth_error(result):
-    if os.environ.get("CODEX_E2E_FORCE") == "1":
-        return
-    combined = f"{result.stdout}\n{result.stderr}"
-    auth_markers = [
-        "401 Unauthorized",
-        "Missing bearer",
-        "Missing bearer or basic authentication",
-        "Missing bearer authentication",
-        "not logged in",
-        "No API key",
-    ]
-    if any(marker in combined for marker in auth_markers):
-        raise unittest.SkipTest(
-            "Codex auth missing or invalid. Set OPENAI_API_KEY or run codex login, "
-            "or set CODEX_E2E_FORCE=1 to fail instead of skipping."
+def _ensure_auth(codex_home):
+    if os.environ.get("OPENAI_API_KEY"):
+        return os.environ["OPENAI_API_KEY"]
+    auth_src = Path(
+        os.environ.get(
+            "CODEX_E2E_AUTH_SOURCE",
+            Path.home() / ".codex" / "auth.json",
         )
+    )
+    if auth_src.is_file():
+        codex_home.mkdir(parents=True, exist_ok=True)
+        dst = codex_home / "auth.json"
+        shutil.copy2(auth_src, dst)
+        try:
+            payload = json.loads(auth_src.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise AssertionError(f"Invalid auth.json: {auth_src}") from exc
+        key = payload.get("OPENAI_API_KEY")
+        if not key:
+            raise AssertionError(f"auth.json missing OPENAI_API_KEY: {auth_src}")
+        return key
+    raise AssertionError(
+        "Codex auth not found. Run `codex login`, set OPENAI_API_KEY, or set "
+        "CODEX_E2E_AUTH_SOURCE to a valid auth.json."
+    )
 
 
-def _codex_exec(codex_cmd, repo, codex_home, prompt):
+def _copy_config(codex_home):
+    config_src = Path(
+        os.environ.get(
+            "CODEX_E2E_CONFIG_SOURCE",
+            Path.home() / ".codex" / "config.toml",
+        )
+    )
+    if config_src.is_file():
+        codex_home.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(config_src, codex_home / "config.toml")
+
+
+def _codex_exec(codex_cmd, repo, codex_home, prompt, auth_key):
     cmd = [
         codex_cmd,
         "-C",
         str(repo),
         "-s",
         "workspace-write",
-        "-a",
-        "never",
+        "--dangerously-bypass-approvals-and-sandbox",
     ]
     model = os.environ.get("CODEX_E2E_MODEL")
     if model:
@@ -62,6 +80,8 @@ def _codex_exec(codex_cmd, repo, codex_home, prompt):
 
     env = os.environ.copy()
     env["CODEX_HOME"] = str(codex_home)
+    if auth_key and not env.get("OPENAI_API_KEY"):
+        env["OPENAI_API_KEY"] = auth_key
     timeout = int(os.environ.get("CODEX_E2E_TIMEOUT", "600"))
     result = subprocess.run(
         cmd,
@@ -73,7 +93,6 @@ def _codex_exec(codex_cmd, repo, codex_home, prompt):
         timeout=timeout,
     )
     if result.returncode != 0:
-        _maybe_skip_auth_error(result)
         raise AssertionError(
             f"codex exec failed (exit {result.returncode})\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
@@ -94,6 +113,8 @@ class CodexE2ETest(unittest.TestCase):
         tmp_path = Path(tmp.name)
 
         codex_home = tmp_path / "codex_home"
+        auth_key = _ensure_auth(codex_home)
+        _copy_config(codex_home)
         skill_dst = codex_home / "skills" / "second-opinion"
         skill_dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(
@@ -127,16 +148,16 @@ class CodexE2ETest(unittest.TestCase):
         diff_path = repo / "change.diff"
         diff_path.write_text(diff, encoding="utf-8")
 
-        return codex_cmd, codex_home, repo, diff_path
+        return codex_cmd, codex_home, repo, diff_path, auth_key
 
     def test_codex_runs_second_opinion_skill(self):
-        codex_cmd, codex_home, repo, _diff_path = self._prepare_workspace()
+        codex_cmd, codex_home, repo, _diff_path, auth_key = self._prepare_workspace()
 
         prompt = (
             "Give second opinion on this change. "
             "Run the Second Opinion review workflow and write review.md and review.json in the repo root."
         )
-        _codex_exec(codex_cmd, repo, codex_home, prompt)
+        _codex_exec(codex_cmd, repo, codex_home, prompt, auth_key)
 
         review_md = repo / "review.md"
         review_json = repo / "review.json"
@@ -149,13 +170,13 @@ class CodexE2ETest(unittest.TestCase):
         self.assertIsInstance(data["findings"], list, "findings must be a list")
 
     def test_codex_tagger_stage(self):
-        codex_cmd, codex_home, repo, diff_path = self._prepare_workspace()
+        codex_cmd, codex_home, repo, diff_path, auth_key = self._prepare_workspace()
 
         prompt = (
             "Give second opinion on this change. Run the tagger stage only. "
             f"Use prompts/tagger.prompt with diff at {diff_path.name} and write tagger.json in the repo root."
         )
-        _codex_exec(codex_cmd, repo, codex_home, prompt)
+        _codex_exec(codex_cmd, repo, codex_home, prompt, auth_key)
 
         tagger_json = repo / "tagger.json"
         self.assertTrue(tagger_json.is_file(), "tagger.json not created")
@@ -167,7 +188,7 @@ class CodexE2ETest(unittest.TestCase):
         self.assertIsInstance(data["tags"], list, "tags must be a list")
 
     def test_codex_compiler_stage(self):
-        codex_cmd, codex_home, repo, diff_path = self._prepare_workspace()
+        codex_cmd, codex_home, repo, diff_path, auth_key = self._prepare_workspace()
 
         tagger_payload = {
             "signals": [{"evidence": "main.go", "reason": "sample change"}],
@@ -185,7 +206,7 @@ class CodexE2ETest(unittest.TestCase):
             "Read prompts/compiler.prompt. Use tagger.json for derived tags, reviewers/* for metadata and criteria, "
             f"and write compiler.json in the repo root. The diff is at {diff_path.name}."
         )
-        _codex_exec(codex_cmd, repo, codex_home, prompt)
+        _codex_exec(codex_cmd, repo, codex_home, prompt, auth_key)
 
         compiler_json = repo / "compiler.json"
         self.assertTrue(compiler_json.is_file(), "compiler.json not created")
@@ -201,7 +222,7 @@ class CodexE2ETest(unittest.TestCase):
             self.assertIn(field, data, f"compiler.json missing {field}")
 
     def test_codex_reviewer_stage(self):
-        codex_cmd, codex_home, repo, diff_path = self._prepare_workspace()
+        codex_cmd, codex_home, repo, diff_path, auth_key = self._prepare_workspace()
 
         compiler_payload = {
             "selected_reviewers": ["alice"],
@@ -221,7 +242,7 @@ class CodexE2ETest(unittest.TestCase):
             "Read prompts/reviewer.prompt. Use compiler.json for compiled_prompt and diff at "
             f"{diff_path.name}. Write review.md and review.json in the repo root."
         )
-        _codex_exec(codex_cmd, repo, codex_home, prompt)
+        _codex_exec(codex_cmd, repo, codex_home, prompt, auth_key)
 
         review_md = repo / "review.md"
         review_json = repo / "review.json"

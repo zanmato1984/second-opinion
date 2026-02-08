@@ -5,13 +5,17 @@ Input:
 - changed file paths
 - repository metadata
 
-Output JSON only:
+Output JSON only. The output must be a single JSON object with exactly two keys:
+- "signals": array of {"evidence": string, "reason": string}
+- "tags": array of {"tag": string, "why": string}
+
+Example shape (values are placeholders only):
 {
   "signals": [
-    {"evidence": "...", "reason": "..."}
+    {"evidence": "main.go", "reason": "adds a new function"}
   ],
   "tags": [
-    {"tag": "scope:tidb", "why": "..."}
+    {"tag": "scope:tidb", "why": "touches TiDB core"}
   ]
 }
 
@@ -19,4 +23,6 @@ Rules:
 - Use only tags listed in taxonomy.md.
 - Each tag must include a short "why".
 - Provide at least one signal when emitting a tag.
-- Do not emit extra fields or commentary.
+- If nothing applies, return empty arrays; do not omit keys.
+- Do not emit extra fields (no summary, no files_changed).
+- Do not wrap the JSON in markdown or code fences.
