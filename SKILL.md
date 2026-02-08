@@ -1,6 +1,6 @@
 ---
 name: second-opinion
-description: "Reviewer-centric prompt compiler for AI code review in this repository. Use when asked to run or modify the tagger/compiler/reviewer prompts, update reviewer criteria or taxonomy, validate schemas, add golden examples, or package/install the Second Opinion skill."
+description: "Consolidated PingCAP reviewer skill for local code review. Trigger when the user asks for a second opinion on a change (e.g., 'give second opinion on this change' or 'do code review for second opinion') or asks to update taxonomy, reviewers, prompts, schemas, tests, or installation."
 ---
 
 # Second Opinion

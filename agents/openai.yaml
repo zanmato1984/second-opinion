@@ -1,4 +1,4 @@
 interface:
   display_name: "Second Opinion"
-  short_description: "Reviewer-centric prompt compiler"
-  default_prompt: "Run the prompt-compiler review workflow on a diff and produce review.md and review.json."
+  short_description: "Consolidated PingCAP reviewer skill"
+  default_prompt: "Give a second opinion on this change and run the review workflow to produce review.md and review.json."

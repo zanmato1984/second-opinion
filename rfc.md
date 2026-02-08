@@ -1,4 +1,4 @@
-# RFC: Reviewer-Centric Prompt Compiler for AI Code Review
+# RFC: Second Opinion — Consolidated PingCAP Reviewer Skill
 
 ## Status
 
@@ -12,14 +12,14 @@ Rossi Sun, contributors
 
 ## Overview
 
-This document defines a reviewer-centric, prompt-only AI code review system.
-
-The project treats real-world engineers as first-class virtual reviewers.  
-Each reviewer encodes their review knowledge as structured, tagged criteria.  
-A multi-stage prompt pipeline detects relevant tags from code changes, selects matching reviewers, extracts applicable criteria, composes a final review prompt, and produces an attributable review report.
+This document defines Second Opinion, a consolidated PingCAP reviewer skill for
+local code review. The skill packages reviewer criteria, taxonomy, prompts,
+schemas, and tests into a single installable artifact while using a
+reviewer-centric prompt pipeline to produce attributable review outputs.
 
 The system is designed to:
 
+- Ship as one installable skill with all artifacts included
 - Preserve strong contributor identity and credit
 - Avoid monolithic prompts
 - Enable explainable reviewer selection
@@ -396,4 +396,7 @@ Even in a prompt-only system, regression is required.
 
 ## Summary
 
-This project defines a reviewer-centric, tag-driven, prompt-only AI code review compiler that dynamically selects real engineers’ criteria, injects process-style review workflows when needed, and produces attributable, structured review output.
+Second Opinion is a consolidated PingCAP reviewer skill that bundles taxonomy,
+reviewer criteria, prompts, schemas, and tests into a single installable package,
+running a reviewer-centric prompt pipeline to produce attributable, structured
+code review output.
