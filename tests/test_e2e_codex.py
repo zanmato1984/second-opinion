@@ -26,6 +26,25 @@ def _require_tool(name):
         raise unittest.SkipTest(f"Required tool not found: {name}")
 
 
+def _maybe_skip_auth_error(result):
+    if os.environ.get("CODEX_E2E_FORCE") == "1":
+        return
+    combined = f"{result.stdout}\n{result.stderr}"
+    auth_markers = [
+        "401 Unauthorized",
+        "Missing bearer",
+        "Missing bearer or basic authentication",
+        "Missing bearer authentication",
+        "not logged in",
+        "No API key",
+    ]
+    if any(marker in combined for marker in auth_markers):
+        raise unittest.SkipTest(
+            "Codex auth missing or invalid. Set OPENAI_API_KEY or run codex login, "
+            "or set CODEX_E2E_FORCE=1 to fail instead of skipping."
+        )
+
+
 def _codex_exec(codex_cmd, repo, codex_home, prompt):
     cmd = [
         codex_cmd,
@@ -54,41 +73,9 @@ def _codex_exec(codex_cmd, repo, codex_home, prompt):
         timeout=timeout,
     )
     if result.returncode != 0:
+        _maybe_skip_auth_error(result)
         raise AssertionError(
             f"codex exec failed (exit {result.returncode})\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
-        )
-
-
-def _codex_review(codex_cmd, repo, codex_home, prompt):
-    cmd = [
-        codex_cmd,
-        "-C",
-        str(repo),
-        "-s",
-        "workspace-write",
-        "-a",
-        "never",
-    ]
-    model = os.environ.get("CODEX_E2E_MODEL")
-    if model:
-        cmd.extend(["-m", model])
-    cmd.extend(["review", "--uncommitted", prompt])
-
-    env = os.environ.copy()
-    env["CODEX_HOME"] = str(codex_home)
-    timeout = int(os.environ.get("CODEX_E2E_TIMEOUT", "600"))
-    result = subprocess.run(
-        cmd,
-        cwd=repo,
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        timeout=timeout,
-    )
-    if result.returncode != 0:
-        raise AssertionError(
-            f"codex review failed (exit {result.returncode})\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
 
 
@@ -149,7 +136,7 @@ class CodexE2ETest(unittest.TestCase):
             "Give second opinion on this change. "
             "Run the Second Opinion review workflow and write review.md and review.json in the repo root."
         )
-        _codex_review(codex_cmd, repo, codex_home, prompt)
+        _codex_exec(codex_cmd, repo, codex_home, prompt)
 
         review_md = repo / "review.md"
         review_json = repo / "review.json"
@@ -244,4 +231,3 @@ class CodexE2ETest(unittest.TestCase):
             data = json.load(handle)
         self.assertIn("findings", data, "review.json missing findings")
         self.assertIsInstance(data["findings"], list, "findings must be a list")
-
