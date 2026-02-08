@@ -22,8 +22,7 @@ description: "Reviewer-centric prompt compiler for AI code review in this reposi
 
 ## Validation
 
-- From this directory: `python3 -m unittest discover -s tests`.
-- From repo root: `python3 -m unittest discover -s skills/second-opinion/tests`.
+- Run `python3 -m unittest discover -s tests`.
 
 ## Install the skill
 
