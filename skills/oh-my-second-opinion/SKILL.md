@@ -26,6 +26,8 @@ repository. The contributor typically provides a SKILL.md or equivalent text.
 ## Workflow (Required)
 
 1) Intake
+- Ask the user about their language usage promptly and make sure all the
+  following interaction uses this language.
 - Ask for contributor handle/name and the SKILL.md text or path.
 - Ask for any preferred attribution or naming constraints.
 
@@ -54,6 +56,8 @@ Propose:
 - Which parts remain attributed under experts/<contributor>/ or processes/<id>/
 - Any deduplication or refinement steps
 - Naming choices for ids and files
+Explain each concept you mention (policies, experts, processes, fragments, etc.)
+as if the contributor has not read this project's documentation.
 
 5) Rationale Output (Mandatory)
 Explain the reasoning for each integration choice. Example:
@@ -76,6 +80,8 @@ satisfied.
 
 ## Integration Rules
 
+- Cardinal rule: all assets and code in this repo must be in English, except for
+  language-specific templates.
 - Fragments: reusable guidance or formatting with no personal attribution.
 - Policies: always-on constraints; name by domain (security, compat, etc.).
 - Processes: curated workflows; require explicit justification.
