@@ -1,9 +1,9 @@
 ---
-name: my-second-opinion
+name: oh-my-second-opinion
 description: "Contributor workflow for integrating individual review skills into the Second Opinion repo."
 ---
 
-# My Second Opinion (Contributor Skill)
+# Oh My Second Opinion (Contributor Skill)
 
 ## Purpose
 
