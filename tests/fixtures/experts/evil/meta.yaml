@@ -1,0 +1,12 @@
+id: evil
+kind: person
+owner: test
+description: Test-only expert with unmistakable sentinel
+preferred_tags:
+  - risk:security
+  - scope:tidb
+excluded_tags: []
+review_scope:
+  - scope:tidb
+participation:
+  max_rules: 1

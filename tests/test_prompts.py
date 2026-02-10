@@ -10,7 +10,13 @@ PROMPTS = {
     },
     "compiler": {
         "path": ROOT / "prompts" / "compiler.prompt",
-        "required": ["Output JSON only", "compiled_prompt", "provenance", "selection_rationale"],
+        "required": [
+            "Output JSON only",
+            "compiled_prompt",
+            "provenance",
+            "selection_rationale",
+            "tests/fixtures",
+        ],
     },
     "reviewer": {
         "path": ROOT / "prompts" / "reviewer.prompt",

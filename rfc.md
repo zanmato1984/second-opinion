@@ -428,6 +428,7 @@ Even in a prompt-only system, regression is required.
 - Required workflow selection rationale fields
 - Drift measurements across repeated runs
 - Manual or scripted replays
+ - Test-only fixtures live under tests/fixtures and are ignored by default.
 
 ---
 

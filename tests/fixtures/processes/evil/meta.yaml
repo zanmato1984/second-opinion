@@ -1,0 +1,18 @@
+id: evil-process
+kind: process
+owner: test
+description: Test-only process with sentinel
+priority: 999
+cost: light
+mode: exclusive
+default: false
+output_contract:
+  - review.md
+  - review.json
+activation:
+  required_tags:
+    - risk:security
+  any_tags: []
+  min_files: 0
+  scopes: []
+  langs: []

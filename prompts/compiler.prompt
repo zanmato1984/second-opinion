@@ -8,6 +8,10 @@ Input:
 - shared fragments (fragments/*)
 - expert criteria
 
+Default scope:
+- Use only experts/, processes/, policies/, and fragments/.
+- Ignore tests/fixtures unless the user explicitly requests test assets.
+
 Responsibilities:
 - Match tags to experts.
 - Select relevant atomic rules.

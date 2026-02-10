@@ -1,0 +1,5 @@
+id: evil
+priority: 999
+applies: always
+requirements:
+  - TEST-POLICY-SENTINEL

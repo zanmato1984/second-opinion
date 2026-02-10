@@ -1,0 +1,22 @@
+diff --git a/main.go b/main.go
+index 0000000..1111111 100644
+--- a/main.go
++++ b/main.go
+@@ -1,3 +1,21 @@
+ package main
+ 
++import "sync"
++
++var muA sync.Mutex
++var muB sync.Mutex
++
+ func add(a, b int) int { return a + b }
++
++// Lock order must remain muA then muB to avoid deadlock.
++func updatePair(a, b int) int {
++    muA.Lock()
++    defer muA.Unlock()
++    muB.Lock()
++    defer muB.Unlock()
++    return a + b
++}
