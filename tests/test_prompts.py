@@ -10,11 +10,11 @@ PROMPTS = {
     },
     "compiler": {
         "path": ROOT / "prompts" / "compiler.prompt",
-        "required": ["Output JSON only", "compiled_prompt", "provenance"],
+        "required": ["Output JSON only", "compiled_prompt", "provenance", "selection_rationale"],
     },
     "reviewer": {
         "path": ROOT / "prompts" / "reviewer.prompt",
-        "required": ["review.md", "review.json", "compiled_prompt"],
+        "required": ["review.md", "review.json", "compiled_prompt", "source"],
     },
 }
 
@@ -29,4 +29,3 @@ class PromptTests(unittest.TestCase):
             content = info["path"].read_text(encoding="utf-8")
             for marker in info["required"]:
                 self.assertIn(marker, content, f"{name} prompt missing marker: {marker}")
-

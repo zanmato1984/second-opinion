@@ -2,11 +2,21 @@ id: re2
 kind: process
 owner: alice
 description: Invariant-first adversarial deep review workflow
+priority: 50
+cost: heavy
+mode: exclusive
+default: false
+output_contract:
+  - review.md
+  - review.json
 preferred_tags:
   - risk:correctness
   - scenario:upgrade
 activation:
-  min_tags:
+  required_tags:
     - risk:concurrency
     - risk:correctness
+  any_tags: []
   min_files: 3
+  scopes: []
+  langs: []

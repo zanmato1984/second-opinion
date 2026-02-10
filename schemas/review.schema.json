@@ -10,7 +10,7 @@
         "required": [
           "file",
           "lines",
-          "reviewer",
+          "source",
           "tags",
           "severity",
           "message"
@@ -18,9 +18,18 @@
         "properties": {
           "file": {"type": "string"},
           "lines": {"type": "string"},
-          "rule_id": {"type": "string"},
-          "workflow_stage": {"type": "string"},
-          "reviewer": {"type": "string"},
+          "source": {
+            "type": "object",
+            "required": ["type", "id"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["rule", "process", "policy"]
+              },
+              "id": {"type": "string"}
+            },
+            "additionalProperties": false
+          },
           "tags": {
             "type": "array",
             "items": {"type": "string"}
@@ -31,10 +40,6 @@
           },
           "message": {"type": "string"}
         },
-        "anyOf": [
-          {"required": ["rule_id"]},
-          {"required": ["workflow_stage"]}
-        ],
         "additionalProperties": false
       }
     }

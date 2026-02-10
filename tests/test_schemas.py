@@ -12,9 +12,11 @@ SCHEMAS = {
     "compile": {
         "path": ROOT / "schemas" / "compile.schema.json",
         "required": [
-            "selected_reviewers",
+            "selected_experts",
             "rules_used",
-            "process_reviewers",
+            "selected_processes",
+            "selected_policies",
+            "selection_rationale",
             "compiled_prompt",
             "provenance",
         ],
@@ -46,4 +48,3 @@ class SchemaTests(unittest.TestCase):
                 data.get("additionalProperties", True),
                 f"{name} schema should set additionalProperties false",
             )
-

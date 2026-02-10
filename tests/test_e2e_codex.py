@@ -203,8 +203,9 @@ class CodexE2ETest(unittest.TestCase):
 
         prompt = (
             "Give second opinion on this change. Run the compiler stage only. "
-            "Read prompts/compiler.prompt. Use tagger.json for derived tags, reviewers/* for metadata and criteria, "
-            f"and write compiler.json in the repo root. The diff is at {diff_path.name}."
+            "Read prompts/compiler.prompt. Use tagger.json for derived tags, experts/* for rule metadata and "
+            "criteria, processes/* for workflow metadata and criteria, and write compiler.json in the repo root. "
+            f"The diff is at {diff_path.name}."
         )
         _codex_exec(codex_cmd, repo, codex_home, prompt, auth_key)
 
@@ -213,9 +214,11 @@ class CodexE2ETest(unittest.TestCase):
         with compiler_json.open("r", encoding="utf-8") as handle:
             data = json.load(handle)
         for field in [
-            "selected_reviewers",
+            "selected_experts",
             "rules_used",
-            "process_reviewers",
+            "selected_processes",
+            "selected_policies",
+            "selection_rationale",
             "compiled_prompt",
             "provenance",
         ]:
@@ -225,14 +228,23 @@ class CodexE2ETest(unittest.TestCase):
         codex_cmd, codex_home, repo, diff_path, auth_key = self._prepare_workspace()
 
         compiler_payload = {
-            "selected_reviewers": ["alice"],
+            "selected_experts": ["alice"],
             "rules_used": {"alice": ["ALICE-CONCURRENCY-001"]},
-            "process_reviewers": [],
+            "selected_processes": [],
+            "selected_policies": ["security", "compat"],
+            "selection_rationale": {
+                "user_override": None,
+                "candidates": [],
+                "primary_process": None,
+                "secondary_processes": [],
+                "tie_breakers": ["specificity", "cost"],
+                "budget": "medium",
+            },
             "compiled_prompt": (
                 "You are the review stage. Use the diff to produce review.md and review.json. "
                 "review.json must include a findings array."
             ),
-            "provenance": [{"rule_id": "ALICE-CONCURRENCY-001", "reviewer": "alice"}],
+            "provenance": [{"rule_id": "ALICE-CONCURRENCY-001", "expert": "alice"}],
         }
         compiler_json = repo / "compiler.json"
         compiler_json.write_text(json.dumps(compiler_payload, indent=2), encoding="utf-8")

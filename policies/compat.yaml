@@ -1,0 +1,6 @@
+id: compat
+priority: 90
+applies: always
+requirements:
+  - Avoid breaking public interfaces without migration notes
+  - Preserve on-disk formats unless explicitly versioned

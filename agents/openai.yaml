@@ -1,4 +1,4 @@
 interface:
   display_name: "Second Opinion"
-  short_description: "Consolidated PingCAP reviewer skill"
+  short_description: "Consolidated PingCAP expert review skill"
   default_prompt: "Give a second opinion on this change and run the review workflow to produce review.md and review.json."

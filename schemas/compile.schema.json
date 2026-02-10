@@ -2,14 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "required": [
-    "selected_reviewers",
+    "selected_experts",
     "rules_used",
-    "process_reviewers",
+    "selected_processes",
+    "selected_policies",
+    "selection_rationale",
     "compiled_prompt",
     "provenance"
   ],
   "properties": {
-    "selected_reviewers": {
+    "selected_experts": {
       "type": "array",
       "items": {"type": "string"}
     },
@@ -20,9 +22,76 @@
         "items": {"type": "string"}
       }
     },
-    "process_reviewers": {
+    "selected_processes": {
       "type": "array",
       "items": {"type": "string"}
+    },
+    "selected_policies": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "selection_rationale": {
+      "type": "object",
+      "required": [
+        "user_override",
+        "candidates",
+        "primary_process",
+        "secondary_processes",
+        "tie_breakers",
+        "budget"
+      ],
+      "properties": {
+        "user_override": {
+          "anyOf": [
+            {"type": "string"},
+            {"type": "null"}
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["process", "reason"],
+            "properties": {
+              "process": {"type": "string"},
+              "reason": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "primary_process": {
+          "anyOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["process", "reason"],
+              "properties": {
+                "process": {"type": "string"},
+                "reason": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "secondary_processes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["process", "reason"],
+            "properties": {
+              "process": {"type": "string"},
+              "reason": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "tie_breakers": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "budget": {"type": "string"}
+      },
+      "additionalProperties": false
     },
     "compiled_prompt": {"type": "string"},
     "provenance": {
@@ -31,8 +100,10 @@
         "type": "object",
         "properties": {
           "rule_id": {"type": "string"},
-          "reviewer": {"type": "string"},
+          "expert": {"type": "string"},
           "process": {"type": "string"},
+          "policy": {"type": "string"},
+          "reason": {"type": "string"},
           "triggered_by": {
             "type": "array",
             "items": {"type": "string"}

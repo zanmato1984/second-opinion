@@ -136,7 +136,7 @@
     Output format (mandatory):
     - Write the structured sections below to review.md.
     - review.json must follow the repository schema: each finding includes file,
-      lines, reviewer, workflow_stage, tags, severity, and message. Encode
+      lines, source, tags, severity, and message. Encode
       Confidence, What, Assumptions, Evidence, Impact, Fix, and Verify inside
       the message field when needed.
 

@@ -1,4 +1,4 @@
-You are the tagger stage for the reviewer-centric prompt compiler.
+You are the tagger stage for the structured review compiler.
 
 Input:
 - diff

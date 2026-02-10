@@ -11,12 +11,11 @@ Output:
 Each finding in review.json must include:
 - file
 - lines
-- rule_id or workflow_stage
-- reviewer
+- source (type + id)
 - tags
 - severity
 - message
 
 Rules:
 - Follow compiled_prompt instructions exactly.
-- Attribute findings to the originating reviewer or workflow stage.
+- Attribute findings to the originating source (rule, process, or policy).

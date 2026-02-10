@@ -1,7 +1,7 @@
 id: alice
 kind: person
 owner: alice
-description: Core storage and concurrency reviewer
+description: Core storage and concurrency expert
 preferred_tags:
   - risk:concurrency
   - scope:tidb

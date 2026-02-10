@@ -12,17 +12,18 @@ Rossi Sun, contributors
 
 ## Overview
 
-This document defines Second Opinion, a consolidated PingCAP reviewer skill for
-local code review. The skill packages reviewer criteria, taxonomy, prompts,
+This document defines Second Opinion, a consolidated PingCAP expert review skill
+for local code review. The skill packages expert criteria, taxonomy, prompts,
 schemas, and tests into a single installable artifact while using a
-reviewer-centric prompt pipeline to produce attributable review outputs.
+structured review pipeline to produce attributable review outputs.
 
 The system is designed to:
 
 - Ship as one installable skill with all artifacts included
 - Preserve strong contributor identity and credit
 - Avoid monolithic prompts
-- Enable explainable reviewer selection
+- Enable explainable expert selection
+- Provide deterministic workflow selection with a rationale trail
 - Support deterministic guardrails inside a prompt-only workflow
 - Integrate easily with agentic coding tools such as Codex CLI and Claude Code CLI
 - Remain portable across environments
@@ -32,9 +33,10 @@ The system is designed to:
 ## Goals
 
 - Encode senior engineers’ review heuristics in reusable form
-- Select reviewers dynamically based on code changes
+- Select experts dynamically based on code changes
 - Compile a tailored review prompt for each change
-- Attribute findings back to specific reviewers and rules
+- Attribute findings back to specific experts and rules
+- Record a deterministic workflow selection rationale
 - Keep the system prompt-first and tool-light
 - Support regression testing through prompt artifacts
 - Control prompt growth through tagging and budgeting
@@ -46,7 +48,7 @@ The system is designed to:
 - Replacing human reviewers
 - Building a full IDE
 - Implementing static analysis engines
-- Hard-coding reviewer selection logic in code
+- Hard-coding expert selection logic in code
 - Binding to a single LLM provider
 
 ---
@@ -58,8 +60,8 @@ The system operates as a Prompt Compiler Pipeline.
 Given a diff and repository context:
 
 1. Detect signals and derive tags
-2. Match tags to reviewers
-3. Select applicable rules from reviewers’ criteria
+2. Match tags to experts
+3. Select applicable rules from experts’ criteria
 4. Deduplicate and order rules
 5. Assemble a final review prompt
 6. Execute a single review pass
@@ -69,21 +71,25 @@ All stages communicate through structured prompt outputs.
 
 ---
 
-## Reviewer-Centric Organization
+## Expert Organization
 
-Each reviewer corresponds to a real engineer.
+Each expert corresponds to a real engineer or expertise area.
 
 Repository structure:
 
-reviewers/
+experts/
   alice/
     criteria.md
     meta.yaml
   bob/
     criteria.md
     meta.yaml
+processes/
+  re2/
+    criteria.md
+    meta.yaml
 
-Each reviewer owns:
+Each expert owns:
 
 - Their criteria rules
 - Preferred tags
@@ -93,22 +99,21 @@ Each reviewer owns:
 
 ---
 
-## Reviewer Kinds
+## Expert Kinds
 
-The system supports multiple reviewer kinds:
+The system supports multiple expert kinds:
 
 - person — real engineers encoding their heuristics
 - domain — subject-matter expertise (e.g., concurrency, performance)
 - component — subsystem focus (e.g., TiKV, DDL)
-- process — full end-to-end review workflows and methodologies
 
-Process reviewers represent strict review philosophies or deep audit workflows rather than individual risk areas.
+Process workflows are first-class entries under processes/ and are selected via activation metadata plus priority/cost signals.
 
 ---
 
 ## Reviewer Criteria Format
 
-Reviewer knowledge is expressed as atomic rules or workflows.
+Expert knowledge is expressed as atomic rules.
 
 Each rule contains:
 
@@ -132,33 +137,96 @@ Rules are immutable during compilation.
 
 ---
 
-## Process-Style Reviewer Model
+## Process Workflow Model
 
-Process reviewers define structured, multi-step review workflows.
+Process workflows define structured, multi-step review workflows.
 
 They are activated conditionally based on tags and signals.
 
-Process reviewer metadata:
+Process workflow metadata template:
 
 id: re2
 kind: process
 owner: alice
 description: Invariant-first adversarial deep review workflow
-preferred_tags:
-  - risk:correctness
-  - scenario:upgrade
+priority: 50
+cost: heavy
+mode: exclusive
+default: false
 activation:
-  min_tags:
+  required_tags:
     - risk:concurrency
     - risk:correctness
+  any_tags: []
   min_files: 3
+  scopes: [scope:tidb]
+  langs: [lang:go]
+
+Field semantics:
+
+- priority: higher wins in primary selection (default 0).
+- cost: light | medium | heavy (default medium), used for budget.
+- mode: exclusive | stackable (default exclusive).
+- default: fallback when no candidates match (default false).
+- activation.required_tags: all must be present.
+- activation.any_tags: at least one must be present (optional).
+- activation.min_files: minimum changed files.
+- activation.scopes/langs: constrain by tags if present.
 
 When selected:
 
 - The entire workflow block is injected into the compiled prompt
 - Steps must be executed in order
 - Output must reference workflow stages
-- Process reviewers are attributed separately from atomic-rule reviewers
+- Process workflows are attributed separately from experts
+
+---
+
+## Shared Blocks
+
+Fragments are reusable content pieces (evidence, checklists, output contracts)
+that can be referenced by processes or inserted during compilation. They are not
+attributed to a specific expert and live under fragments/.
+
+---
+
+## Policies
+
+Policies are organization-wide guardrails that are always included in the
+compiled prompt. They live under policies/ and are ordered by priority.
+
+---
+
+## Workflow Selection Algorithm
+
+Selection is deterministic and recorded in the compiler output.
+
+1. User override: if the user names a workflow, select it exclusively unless they request multiple.
+2. Candidate filter: keep only processes whose activation rules match tags and diff metadata.
+3. Default fallback: if no candidates match, select the first process with default: true.
+4. Primary selection: choose the candidate with highest priority.
+5. Tie-breakers: prefer higher specificity (more activation constraints), then lower cost.
+6. Optional secondary: if primary is stackable, add additional candidates only if within budget.
+7. Emit selection_rationale with candidates, primary, secondary, and tie-break details.
+
+If no candidates and no default exist, process selection is empty and recorded as such.
+
+At least one lightweight process should be marked default: true (e.g., pr-baseline)
+to provide a baseline workflow when no specialized process matches.
+
+Policies are always selected and included in a fixed priority order.
+
+---
+
+## Compilation Order
+
+The compiler assembles the final prompt in this order:
+
+1. Policies (fixed priority order)
+2. Primary process workflow
+3. Secondary process workflow (optional)
+4. Reviewer rules (atomic checks)
+5. Output contract fragment (from fragments/output-*.md)
 
 ---
 
@@ -214,30 +282,49 @@ Output JSON:
 Input:
 
 - derived tags
-- reviewer metadata
-- reviewer criteria
+- expert metadata (experts/*)
+- process metadata (processes/*)
+- policy metadata (policies/*)
+- shared fragments (fragments/*)
+- expert criteria
 
 Responsibilities:
 
-- Match tags to reviewers
+- Match tags to experts
 - Select relevant atomic rules
 - Deduplicate overlapping rules
+- Select process workflows using the deterministic algorithm
 - Insert full process workflows when triggered
+- Insert policy requirements (always)
 - Assemble the final review instructions
 - Preserve provenance for every rule and workflow
+- Emit selection rationale for process workflows
 
 Output JSON:
 
 {
-  "selected_reviewers": ["alice", "re2"],
+  "selected_experts": ["alice"],
   "rules_used": {
     "alice": ["ALICE-CONCURRENCY-001"]
   },
-  "process_reviewers": ["re2"],
+  "selected_processes": ["re2"],
+  "selected_policies": ["security", "compat"],
+  "selection_rationale": {
+    "user_override": null,
+    "candidates": [
+      {"process": "re2", "reason": "required_tags matched; min_files met"}
+    ],
+    "primary_process": {"process": "re2", "reason": "highest priority"},
+    "secondary_processes": [],
+    "tie_breakers": ["specificity", "cost"],
+    "budget": "medium"
+  },
   "compiled_prompt": "...",
   "provenance": [
-    {"rule_id": "ALICE-CONCURRENCY-001", "reviewer": "alice"},
-    {"process": "re2", "triggered_by": ["risk:correctness"]}
+    {"rule_id": "ALICE-CONCURRENCY-001", "expert": "alice"},
+    {"process": "re2", "triggered_by": ["risk:correctness"]},
+    {"policy": "security", "reason": "always"},
+    {"policy": "compat", "reason": "always"}
   ]
 }
 
@@ -259,8 +346,7 @@ Each finding must include:
 
 - file
 - lines
-- rule_id or workflow_stage
-- reviewer
+- source (type + id)
 - tags
 - severity
 - message
@@ -272,9 +358,11 @@ Each finding must include:
 Contribution is derived from:
 
 - Which rules produced findings
-- Which reviewers authored those rules
+- Which experts authored those rules
 - Which tags caused selection
 - Which process workflows were triggered
+- Which workflow selection rationale led to those triggers
+- Which policies were included
 
 No subjective scoring without references.
 
@@ -286,9 +374,10 @@ To maintain stability:
 
 - Temperature set to zero for selection and compilation
 - Strict JSON schemas for all stages
-- Maximum reviewers per run
-- Maximum atomic rules per reviewer
-- Mandatory provenance blocks
+- Maximum experts per run
+- Maximum atomic rules per expert
+- Mandatory provenance fragments
+- Mandatory workflow selection rationale
 - Rules must be inserted verbatim
 - Process workflows cannot be partially injected
 - Only selection, ordering, and deduplication allowed
@@ -301,9 +390,20 @@ Minimal structure:
 
 RFC.md
 taxonomy.md
-reviewers/
+experts/
   alice/criteria.md
+processes/
   re2/criteria.md
+  pr-baseline/criteria.md
+fragments/
+  evidence.md
+  checklists.md
+  output-cn.md
+  output-en.md
+  risk-matrix.md
+policies/
+  security.yaml
+  compat.yaml
 prompts/
   tagger.prompt
   compiler.prompt
@@ -322,9 +422,10 @@ Even in a prompt-only system, regression is required.
 
 - Golden diffs stored in examples/
 - Expected tag outputs
-- Expected reviewer selections
+- Expected expert selections
 - Required rule hits
-- Required process reviewer triggers
+- Required process workflow triggers
+- Required workflow selection rationale fields
 - Drift measurements across repeated runs
 - Manual or scripted replays
 
@@ -343,7 +444,7 @@ Even in a prompt-only system, regression is required.
 
 ## Risks
 
-- Reviewer selection drift
+- Expert selection drift
 - Token explosion
 - Semantic rewriting of rules
 - Attribution gaming
@@ -366,13 +467,13 @@ Even in a prompt-only system, regression is required.
 
 ### Phase 1
 
-- Five reviewers
+- Five experts
 - Thirty rules each
 - Twenty golden diffs
 
 ### Phase 2
 
-- Reviewer packs
+- Expert packs
 - Attribution dashboards
 - Tag coverage metrics
 
@@ -396,7 +497,7 @@ Even in a prompt-only system, regression is required.
 
 ## Summary
 
-Second Opinion is a consolidated PingCAP reviewer skill that bundles taxonomy,
-reviewer criteria, prompts, schemas, and tests into a single installable package,
-running a reviewer-centric prompt pipeline to produce attributable, structured
-code review output.
+Second Opinion is a consolidated PingCAP expert review skill that bundles taxonomy,
+expert criteria, prompts, schemas, and tests into a single installable package,
+running a structured review pipeline to produce attributable, structured code
+review output.
