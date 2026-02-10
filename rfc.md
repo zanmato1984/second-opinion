@@ -37,6 +37,7 @@ The system is designed to:
 - Compile a tailored review prompt for each change
 - Attribute findings back to specific experts and rules
 - Record a deterministic workflow selection rationale
+- Provide telemetry for overall skill adoption and per-rule adoption
 - Keep the system prompt-first and tool-light
 - Support regression testing through prompt artifacts
 - Control prompt growth through tagging and budgeting
@@ -477,6 +478,7 @@ Even in a prompt-only system, regression is required.
 - Expert packs
 - Attribution dashboards
 - Tag coverage metrics
+- Telemetry usage function to record overall skill adoption and individual rule adoption
 
 ### Phase 3
 
