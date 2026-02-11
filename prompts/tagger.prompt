@@ -15,7 +15,7 @@ Example shape (values are placeholders only):
     {"evidence": "main.go", "reason": "adds a new function"}
   ],
   "tags": [
-    {"tag": "component:ddl", "why": "touches DDL flow"}
+    {"tag": "component:tidb/ddl", "why": "touches DDL flow"}
   ]
 }
 

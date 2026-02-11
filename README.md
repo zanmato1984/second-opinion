@@ -36,8 +36,9 @@ When you need a new tag:
 
 1) Update taxonomy.md with the new tag(s).
 2) Keep tags in English.
-3) For component tags, mirror TiDB GitHub labels that use `component/` or
-   `sig/` naming as `component:<name>`.
+3) For component tags, include the repo name as `component:<repo>/<name>`
+   (for example, `component:tidb/ddl`) and mirror labels that use
+   `component/` or `sig/` naming.
 4) Update or add tests that validate the taxonomy change.
 
 ## Language policy

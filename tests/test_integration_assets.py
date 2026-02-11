@@ -20,7 +20,7 @@ class CodexIntegrationAssetsTest(unittest.TestCase):
             "signals": [{"evidence": "main.go", "reason": "sample change"}],
             "tags": [
                 {"tag": "lang:go", "why": "Go source"},
-                {"tag": "component:ddl", "why": "sample component"},
+                {"tag": "component:tidb/ddl", "why": "sample component"},
                 {"tag": "theme:testing", "why": "sample theme"},
             ],
         }

@@ -9,12 +9,21 @@ Controlled vocabulary for tags.
 - lang:sql
 
 ## component
-- component:ddl
-- component:statistics
-- component:dumpling
-- component:planner
-- component:execution
-- component:sql-infra
+- component:tidb/ddl
+- component:tidb/statistics
+- component:tidb/dumpling
+- component:tidb/planner
+- component:tidb/execution
+- component:tidb/sql-infra
+- component:tikv/raftstore
+- component:tikv/storage
+- component:tikv/coprocessor
+- component:pd/scheduling
+- component:pd/tso
+- component:pd/placement
+- component:tiflash/storage
+- component:tiflash/compute
+- component:tiflash/replica
 
 ## risk
 - risk:correctness

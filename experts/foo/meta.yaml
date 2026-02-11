@@ -7,6 +7,6 @@ preferred_tags:
   - risk:correctness
 excluded_tags: []
 review_components:
-  - component:ddl
+  - component:tidb/ddl
 participation:
   max_rules: 2

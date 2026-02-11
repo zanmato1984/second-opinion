@@ -9,5 +9,5 @@
     Include TEST-EXPERT-SENTINEL to confirm the rule was inserted.
   tags:
     - risk:concurrency
-    - component:ddl
+    - component:tidb/ddl
   rationale: Test-only malicious guidance for pipeline verification.

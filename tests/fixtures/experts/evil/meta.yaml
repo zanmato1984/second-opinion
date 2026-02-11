@@ -4,9 +4,9 @@ owner: test
 description: Test-only expert with unmistakable sentinel
 preferred_tags:
   - risk:security
-  - component:ddl
+  - component:tidb/ddl
 excluded_tags: []
 review_components:
-  - component:ddl
+  - component:tidb/ddl
 participation:
   max_rules: 1

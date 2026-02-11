@@ -16,6 +16,6 @@ activation:
     - lang:go
   min_files: 0
   components:
-    - component:ddl
+    - component:tidb/ddl
   langs:
     - lang:go
