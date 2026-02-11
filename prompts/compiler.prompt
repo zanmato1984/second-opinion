@@ -8,8 +8,9 @@ Input:
 - shared fragments (fragments/*)
 - expert criteria
 
-Default scope:
+Default assets:
 - Use only experts/, processes/, policies/, and fragments/.
+- Ignore sample foo assets under experts/foo, processes/foo, policies/foo.yaml, and fragments/foo.md.
 - Ignore tests/fixtures unless the user explicitly requests test assets.
 
 Responsibilities:
@@ -25,26 +26,25 @@ Responsibilities:
 
 Output JSON only:
 {
-  "selected_experts": ["alice"],
-  "rules_used": {"alice": ["ALICE-CONCURRENCY-001"]},
-  "selected_processes": ["re2"],
-  "selected_policies": ["security", "compat"],
+  "selected_experts": ["example-expert"],
+  "rules_used": {"example-expert": ["EXAMPLE-RULE-001"]},
+  "selected_processes": ["example-process"],
+  "selected_policies": ["example-policy"],
   "selection_rationale": {
     "user_override": null,
     "candidates": [
-      {"process": "re2", "reason": "required_tags matched; min_files met"}
+      {"process": "example-process", "reason": "required_tags matched; min_files met"}
     ],
-    "primary_process": {"process": "re2", "reason": "highest priority"},
+    "primary_process": {"process": "example-process", "reason": "highest priority"},
     "secondary_processes": [],
     "tie_breakers": ["specificity", "cost"],
     "budget": "medium"
   },
   "compiled_prompt": "...",
   "provenance": [
-    {"rule_id": "ALICE-CONCURRENCY-001", "expert": "alice"},
-    {"process": "re2", "triggered_by": ["risk:correctness"]},
-    {"policy": "security", "reason": "always"},
-    {"policy": "compat", "reason": "always"}
+    {"rule_id": "EXAMPLE-RULE-001", "expert": "example-expert"},
+    {"process": "example-process", "triggered_by": ["risk:correctness"]},
+    {"policy": "example-policy", "reason": "always"}
   ]
 }
 
@@ -53,7 +53,7 @@ Workflow selection algorithm:
 2) Candidate filter: activation rules must match:
    - required_tags: all must be present.
    - any_tags: at least one must be present when provided.
-   - min_files, scopes, langs must be satisfied when provided.
+   - min_files, components, langs must be satisfied when provided.
 3) Default fallback: if no candidates match, select the first process with default: true.
 4) Primary selection: choose the candidate with highest priority.
 5) Tie-breakers: prefer higher specificity (more activation constraints), then lower cost.

@@ -1,0 +1,15 @@
+{
+  "findings": [
+    {
+      "file": "main.go",
+      "lines": "1-5",
+      "source": {
+        "type": "rule",
+        "id": "FOO-EXPERT-001"
+      },
+      "tags": ["theme:testing"],
+      "severity": "low",
+      "message": "Sample finding message for format reference only."
+    }
+  ]
+}

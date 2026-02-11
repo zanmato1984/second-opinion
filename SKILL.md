@@ -11,6 +11,8 @@ description: "Consolidated PingCAP review expert skill for local code review. Tr
   following interaction uses this language.
 - Ensure all assets and code in this repo are in English, except for
   language-specific templates.
+- Ignore sample foo assets under experts/foo, processes/foo, policies/foo.yaml,
+  fragments/foo.md, and examples/foo; they are format references only.
 - Run the review workflow (tagger → compiler → review) on the provided diff.
 - The compiler deterministically selects processes and experts, and always includes policies.
 - Emit `compiler.json` with selection rationale, then produce `review.md` and `review.json`.

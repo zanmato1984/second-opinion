@@ -1,0 +1,21 @@
+id: foo
+kind: process
+owner: sample
+description: Sample process workflow for format reference only. Exclude from real reviews.
+priority: 0
+cost: light
+mode: stackable
+default: false
+output_contract:
+  - review.md
+  - review.json
+activation:
+  required_tags:
+    - theme:testing
+  any_tags:
+    - lang:go
+  min_files: 0
+  components:
+    - component:ddl
+  langs:
+    - lang:go

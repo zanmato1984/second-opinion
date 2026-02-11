@@ -1,0 +1,16 @@
+{
+  "selected_experts": [],
+  "rules_used": {},
+  "selected_processes": [],
+  "selected_policies": [],
+  "selection_rationale": {
+    "user_override": null,
+    "candidates": [],
+    "primary_process": null,
+    "secondary_processes": [],
+    "tie_breakers": ["specificity", "cost"],
+    "budget": "low"
+  },
+  "compiled_prompt": "Sample compiled prompt for documentation only.",
+  "provenance": []
+}

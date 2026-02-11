@@ -1,0 +1,12 @@
+id: foo
+kind: person
+owner: sample
+description: Sample expert asset for format reference only. Exclude from real reviews.
+preferred_tags:
+  - lang:go
+  - risk:correctness
+excluded_tags: []
+review_components:
+  - component:ddl
+participation:
+  max_rules: 2

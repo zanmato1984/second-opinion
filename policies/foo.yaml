@@ -1,0 +1,5 @@
+id: foo
+priority: 50
+applies: always
+requirements:
+  - Sample-only policy requirement for format reference. Exclude from real reviews.

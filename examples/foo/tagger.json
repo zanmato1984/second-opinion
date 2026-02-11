@@ -1,0 +1,18 @@
+{
+  "signals": [
+    {
+      "evidence": "main.go",
+      "reason": "sample change"
+    }
+  ],
+  "tags": [
+    {
+      "tag": "lang:go",
+      "why": "Go file"
+    },
+    {
+      "tag": "theme:testing",
+      "why": "Sample example"
+    }
+  ]
+}
