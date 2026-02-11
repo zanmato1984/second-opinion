@@ -10,6 +10,7 @@ Controlled vocabulary for tags.
 
 ## component
 - component:tidb/ddl
+- component:tidb/txn
 - component:tidb/statistics
 - component:tidb/dumpling
 - component:tidb/planner

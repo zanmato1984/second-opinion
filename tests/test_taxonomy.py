@@ -10,6 +10,7 @@ EXPECTED_TAGS = [
     "lang:rust",
     "lang:sql",
     "component:tidb/ddl",
+    "component:tidb/txn",
     "component:tidb/statistics",
     "component:tidb/dumpling",
     "component:tidb/planner",
