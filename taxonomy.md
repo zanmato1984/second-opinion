@@ -8,11 +8,13 @@ Controlled vocabulary for tags.
 - lang:rust
 - lang:sql
 
-## scope
-- scope:tidb
-- scope:tikv
-- scope:tiflash
-- scope:tools
+## component
+- component:ddl
+- component:statistics
+- component:dumpling
+- component:planner
+- component:execution
+- component:sql-infra
 
 ## risk
 - risk:correctness

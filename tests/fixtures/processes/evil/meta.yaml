@@ -14,5 +14,5 @@ activation:
     - risk:security
   any_tags: []
   min_files: 0
-  scopes: []
+  components: []
   langs: []

@@ -57,7 +57,7 @@ class CodexE2ETest(unittest.TestCase):
             "signals": [{"evidence": "main.go", "reason": "sample change"}],
             "tags": [
                 {"tag": "lang:go", "why": "Go source"},
-                {"tag": "scope:tidb", "why": "sample scope"},
+                {"tag": "component:ddl", "why": "sample component"},
                 {"tag": "risk:concurrency", "why": "sample risk"},
             ],
         }
@@ -91,10 +91,10 @@ class CodexE2ETest(unittest.TestCase):
         codex_cmd, codex_home, repo, diff_path, auth_key = self._prepare_workspace()
 
         compiler_payload = {
-            "selected_experts": ["alice"],
-            "rules_used": {"alice": ["ALICE-CONCURRENCY-001"]},
+            "selected_experts": ["example-expert"],
+            "rules_used": {"example-expert": ["EXAMPLE-RULE-001"]},
             "selected_processes": [],
-            "selected_policies": ["security", "compat"],
+            "selected_policies": ["example-policy"],
             "selection_rationale": {
                 "user_override": None,
                 "candidates": [],
@@ -107,7 +107,7 @@ class CodexE2ETest(unittest.TestCase):
                 "You are the review stage. Use the diff to produce review.md and review.json. "
                 "review.json must include a findings array."
             ),
-            "provenance": [{"rule_id": "ALICE-CONCURRENCY-001", "expert": "alice"}],
+            "provenance": [{"rule_id": "EXAMPLE-RULE-001", "expert": "example-expert"}],
         }
         compiler_json = repo / "compiler.json"
         compiler_json.write_text(json.dumps(compiler_payload, indent=2), encoding="utf-8")

@@ -9,10 +9,12 @@ EXPECTED_TAGS = [
     "lang:cpp",
     "lang:rust",
     "lang:sql",
-    "scope:tidb",
-    "scope:tikv",
-    "scope:tiflash",
-    "scope:tools",
+    "component:ddl",
+    "component:statistics",
+    "component:dumpling",
+    "component:planner",
+    "component:execution",
+    "component:sql-infra",
     "risk:correctness",
     "risk:concurrency",
     "risk:perf",
@@ -39,4 +41,3 @@ class TaxonomyTests(unittest.TestCase):
         content = TAXONOMY.read_text(encoding="utf-8")
         for tag in EXPECTED_TAGS:
             self.assertIn(tag, content, f"Taxonomy missing tag: {tag}")
-

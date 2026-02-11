@@ -19,7 +19,8 @@ repository. The contributor typically provides a SKILL.md or equivalent text.
 ## Safety & Preflight
 
 - Operate on the current working directory as the target repo.
-- Confirm these paths exist before edits: rfc.md, taxonomy.md, experts/, processes/, policies/, fragments/.
+- Confirm these paths exist before edits: README.md, taxonomy.md, experts/, processes/, policies/, fragments/.
+- Read README.md and follow its contributor and taxonomy guidance.
 - Do not modify the main SKILL.md unless explicitly requested.
 - If the repo structure is missing, stop and ask for confirmation or a new path.
 
@@ -36,8 +37,12 @@ Split the provided content into these buckets:
 - Process: multi-step workflow(s) with ordered steps and output contract.
 - Policy: always-on guardrails or organization-wide constraints.
 - Fragment: reusable formatting, checklists, output templates, evidence rules.
-- Expert: atomic rules or heuristics with tags or scope.
+- Expert: atomic rules or heuristics with tags or component.
 - Unknown: unclear content (ask for clarification).
+
+2b) Taxonomy Check
+- If the submission introduces new tags, propose taxonomy.md updates.
+- Follow the README.md taxonomy guidance and keep tags in English.
 
 3) Process Admission Gate (Strict)
 Because processes are scarce, compare the submitted process to existing ones:
@@ -55,6 +60,7 @@ Propose:
 - Which parts go to shared directories (fragments/, policies/, processes/)
 - Which parts remain attributed under experts/<contributor>/ or processes/<id>/
 - Any deduplication or refinement steps
+- Any required taxonomy.md updates and related test updates
 - Naming choices for ids and files
 Explain each concept you mention (policies, experts, processes, fragments, etc.)
 as if the contributor has not read this project's documentation.

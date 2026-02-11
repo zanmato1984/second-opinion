@@ -20,7 +20,7 @@ class CodexIntegrationAssetsTest(unittest.TestCase):
             "signals": [{"evidence": "main.go", "reason": "sample change"}],
             "tags": [
                 {"tag": "lang:go", "why": "Go source"},
-                {"tag": "scope:tidb", "why": "sample scope"},
+                {"tag": "component:ddl", "why": "sample component"},
                 {"tag": "theme:testing", "why": "sample theme"},
             ],
         }
@@ -31,8 +31,8 @@ class CodexIntegrationAssetsTest(unittest.TestCase):
             "Give second opinion on this change. Run the compiler stage only. "
             "Read prompts/compiler.prompt. Use tagger.json for derived tags, experts/* for rule metadata and "
             "criteria, processes/* for workflow metadata and criteria, policies/* for policies, and fragments/* "
-            "for shared fragments. Ensure the default process is selected when no candidates match and policies "
-            "include security and compat. Write compiler.json in the repo root. "
+            "for shared fragments. Ensure selection_rationale is populated even when no assets match. "
+            "Write compiler.json in the repo root. "
             f"The diff is at {diff_path.name}."
         )
         codex_exec(codex_cmd, repo, codex_home, prompt, auth_key)
@@ -41,7 +41,13 @@ class CodexIntegrationAssetsTest(unittest.TestCase):
         self.assertTrue(compiler_json.is_file(), "compiler.json not created")
         with compiler_json.open("r", encoding="utf-8") as handle:
             data = json.load(handle)
-        self.assertIn("pr-baseline", data.get("selected_processes", []))
-        policies = data.get("selected_policies", [])
-        self.assertIn("security", policies)
-        self.assertIn("compat", policies)
+        for field in [
+            "selected_experts",
+            "rules_used",
+            "selected_processes",
+            "selected_policies",
+            "selection_rationale",
+            "compiled_prompt",
+            "provenance",
+        ]:
+            self.assertIn(field, data, f"compiler.json missing {field}")

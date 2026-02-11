@@ -1,7 +1,0 @@
-id: security
-priority: 100
-applies: always
-requirements:
-  - No secrets in logs or output
-  - Validate external inputs
-  - Avoid unsafe defaults
