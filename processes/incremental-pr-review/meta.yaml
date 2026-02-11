@@ -1,0 +1,18 @@
+id: incremental-pr-review
+kind: process
+owner: xuhuaiyu
+description: >
+  Scope-aware PR review workflow (first / incremental / verification) with evidence-first
+  validation and reproducible review output.
+priority: 10
+cost: medium
+mode: stackable
+default: true
+output_contract:
+  - review.md
+  - review.json
+activation:
+  any_tags:
+    - lang:go
+    - lang:sql
+  min_files: 0

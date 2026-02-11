@@ -1,0 +1,12 @@
+id: no-github-side-effects
+priority: 10
+applies: always
+requirements:
+  - >
+    Do not perform any GitHub side effects (posting comments, submitting reviews, creating issues,
+    labeling, closing/reopening) unless the user explicitly instructs exactly what to do.
+  - >
+    If the user asks for comment text, produce it as content only; do not assume it will be posted.
+  - >
+    Keep the review local and evidence-based: focus on the provided diff and clearly state
+    what evidence supports each finding.
