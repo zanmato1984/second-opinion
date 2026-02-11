@@ -19,3 +19,4 @@ Each finding in review.json must include:
 Rules:
 - Follow compiled_prompt instructions exactly.
 - Attribute findings to the originating source (rule, process, or policy).
+- If docs/agents/*/*.md files exist, use them for domain knowledge; otherwise ignore.
