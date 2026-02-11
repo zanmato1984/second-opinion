@@ -16,6 +16,7 @@ Controlled vocabulary for tags.
 - component:tidb/planner
 - component:tidb/execution
 - component:tidb/sql-infra
+- component:tidb/expression
 - component:tikv/raftstore
 - component:tikv/storage
 - component:tikv/coprocessor
