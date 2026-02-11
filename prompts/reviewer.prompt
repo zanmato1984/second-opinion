@@ -20,3 +20,5 @@ Rules:
 - Follow compiled_prompt instructions exactly.
 - Attribute findings to the originating source (rule, process, or policy).
 - If docs/agents/*/*.md files exist, use them for domain knowledge; otherwise ignore.
+- If the user provided explicit focus hints, treat them as hard constraints and keep findings in-scope only.
+  If nothing matches, return an empty findings array.

@@ -26,3 +26,5 @@ Rules:
 - If nothing applies, return empty arrays; do not omit keys.
 - Do not emit extra fields (no summary, no files_changed).
 - Do not wrap the JSON in markdown or code fences.
+- If the user prompt includes explicit focus hints (for example, component/risk/theme/lang tags or "security-only"),
+  emit the matching tags so downstream stages can treat them as hard constraints.

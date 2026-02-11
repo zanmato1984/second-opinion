@@ -72,3 +72,8 @@ Rules:
 - Do not rewrite rule text.
 - Always emit selection_rationale (use empty arrays or nulls when needed).
 - Do not emit extra fields or commentary.
+- If the user provided explicit review hints, honor them:
+  - Depth hints (quick/light/standard/deep/heavy/thorough) set selection_rationale.budget.
+  - Focus hints (component/risk/theme/lang/scenario or "security-only") are hard constraints:
+    select only experts/processes/rules/fragments that match the focus.
+  - Policies still apply unless the user explicitly excludes them.
