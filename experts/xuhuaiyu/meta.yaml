@@ -1,0 +1,15 @@
+id: xuhuaiyu
+kind: person
+owner: xuhuaiyu
+description: TiDB PR review heuristics with Go correctness, concurrency, and testing focus
+preferred_tags:
+  - scope:tidb
+  - lang:go
+  - risk:correctness
+  - risk:concurrency
+  - theme:error-handling
+excluded_tags: []
+review_scope:
+  - scope:tidb
+participation:
+  max_rules: 12
