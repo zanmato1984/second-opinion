@@ -20,3 +20,5 @@ Rules:
 - Follow compiled_prompt instructions exactly.
 - Attribute findings to the originating source (rule, process, or policy).
 - If docs/agents/*/*.md files exist, use them for domain knowledge; otherwise ignore.
+- Expert rules are minimum requirements, not the full scope. Report any in-scope high/critical risks
+  even if no expert rule matches, using the baseline policy as the source when applicable.

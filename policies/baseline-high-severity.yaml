@@ -1,0 +1,8 @@
+id: baseline-high-severity
+priority: 10
+applies: always
+requirements:
+  - Expert rules are minimum requirements, not the full scope.
+  - Always perform a baseline scan for high/critical risks that are in-scope.
+  - If such issues are found and no specific rule/process applies, still report them.
+  - For findings produced solely by this policy, set source to {type: "policy", id: "baseline-high-severity"}.
