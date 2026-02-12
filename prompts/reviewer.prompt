@@ -22,3 +22,5 @@ Rules:
 - If docs/agents/*/*.md files exist, use them for domain knowledge; otherwise ignore.
 - If the user provided explicit focus hints, treat them as hard constraints and keep findings in-scope only.
   If nothing matches, return an empty findings array.
+- Expert rules are minimum requirements, not the full scope. Report any in-scope high/critical risks
+  even if no expert rule matches, using the baseline policy as the source when applicable.

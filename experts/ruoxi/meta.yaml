@@ -1,0 +1,14 @@
+id: ruoxi
+kind: person
+owner: ruoxi
+description: Reviewer focused on TiDB builtin functions, vectorized parity, and tests.
+preferred_tags:
+  - lang:go
+  - component:tidb/expression
+  - theme:testing
+  - risk:correctness
+excluded_tags: []
+review_components:
+  - component:tidb/expression
+participation:
+  max_rules: 3
