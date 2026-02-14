@@ -1,0 +1,19 @@
+id: pr-review
+kind: process
+owner: xuhuaiyu
+description: Baseline PR review workflow with explicit scope control, evidence collection, and a strict no-side-effects boundary for GitHub operations.
+priority: 5
+cost: light
+mode: primary
+default: true
+output_contract:
+  - review.md
+  - review.json
+activation:
+  required_tags: []
+  any_tags:
+    - lang:go
+    - lang:cpp
+    - lang:rust
+    - lang:sql
+  min_files: 0

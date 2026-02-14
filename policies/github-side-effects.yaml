@@ -1,0 +1,8 @@
+id: github-side-effects
+priority: 20
+applies: always
+requirements:
+  - Do not perform any GitHub operation with side effects unless the user explicitly instructs you to do so.
+  - Side effects include (but are not limited to) posting review comments, submitting reviews, creating issues, labeling, closing/reopening, or editing remote content.
+  - If the user requests suggested comments/messages, draft them locally but do not submit anything.
+  - When drafting GitHub review comments, use English and ensure inline comments can be anchored to diff-resolvable lines; otherwise use a general (non-inline) comment format.

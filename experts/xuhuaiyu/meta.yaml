@@ -1,0 +1,20 @@
+id: xuhuaiyu
+kind: person
+owner: xuhuaiyu
+description: Reviewer focused on evidence-based PR reviews, incremental scope control, and high-severity risk detection (correctness, concurrency, security, compatibility).
+preferred_tags:
+  - lang:go
+  - theme:error-handling
+  - theme:testing
+  - risk:correctness
+  - risk:concurrency
+  - risk:security
+  - risk:compat
+  - risk:ops
+excluded_tags: []
+review_components:
+  - component:tidb/sql-infra
+  - component:tidb/execution
+  - component:tidb/txn
+participation:
+  max_rules: 6
