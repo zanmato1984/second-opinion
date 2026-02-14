@@ -1,0 +1,20 @@
+id: windtalker
+kind: person
+owner: windtalker
+description: Reviewer focused on TiDB/TiFlash semantic correctness, hot-path performance, type/NULL behavior, and MPP/pipeline safety.
+preferred_tags:
+  - lang:go
+  - lang:cpp
+  - component:tidb/planner
+  - component:tidb/execution
+  - component:tiflash/compute
+excluded_tags: []
+review_components:
+  - component:tidb/planner
+  - component:tidb/execution
+  - component:tidb/expression
+  - component:tidb/sql-infra
+  - component:tiflash/compute
+  - component:tiflash/storage
+participation:
+  max_rules: 8
