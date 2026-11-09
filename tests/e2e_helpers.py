@@ -1,10 +1,11 @@
-import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import unittest
+
+from scripts.install_skill import install
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,57 +27,33 @@ def _require_tool(name):
         raise unittest.SkipTest(f"Required tool not found: {name}")
 
 
-def _ensure_auth(codex_home):
-    if os.environ.get("OPENAI_API_KEY"):
-        return os.environ["OPENAI_API_KEY"]
-    auth_src = Path(
-        os.environ.get(
-            "CODEX_E2E_AUTH_SOURCE",
-            Path.home() / ".codex" / "auth.json",
-        )
-    )
-    if auth_src.is_file():
-        codex_home.mkdir(parents=True, exist_ok=True)
-        dst = codex_home / "auth.json"
-        shutil.copy2(auth_src, dst)
-        try:
-            payload = json.loads(auth_src.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            raise AssertionError(f"Invalid auth.json: {auth_src}") from exc
-        key = payload.get("OPENAI_API_KEY")
-        if not key:
-            raise AssertionError(f"auth.json missing OPENAI_API_KEY: {auth_src}")
-        return key
-    raise AssertionError(
-        "Codex auth not found. Run `codex login`, set OPENAI_API_KEY, or set "
-        "CODEX_E2E_AUTH_SOURCE to a valid auth.json."
+def _ensure_auth():
+    key = os.environ.get("CODEX_E2E_API_KEY")
+    if not key:
+        raise AssertionError("Set CODEX_E2E_API_KEY to a dedicated test API key.")
+    return key
+
+
+def _write_config(codex_home):
+    codex_home.mkdir(parents=True, exist_ok=True)
+    (codex_home / "config.toml").write_text(
+        'approval_policy = "never"\n'
+        'sandbox_mode = "workspace-write"\n'
+        '[sandbox_workspace_write]\nnetwork_access = false\n'
+        '[shell_environment_policy]\ninherit = "none"\n',
+        encoding="utf-8",
     )
 
 
-def _copy_config(codex_home):
-    config_src = Path(
-        os.environ.get(
-            "CODEX_E2E_CONFIG_SOURCE",
-            Path.home() / ".codex" / "config.toml",
-        )
-    )
-    if config_src.is_file():
-        codex_home.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(config_src, codex_home / "config.toml")
-
-
-def _install_skills(codex_home):
+def _install_skills(codex_home, *, include_fixtures=False):
     skill_dst = codex_home / "skills" / "second-opinion"
-    skill_dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(
-        REPO_ROOT,
-        skill_dst,
-        ignore=shutil.ignore_patterns(".git", "__pycache__"),
-    )
+    install(REPO_ROOT, skill_dst, include_fixtures=include_fixtures)
 
     skills_src = REPO_ROOT / "skills"
     if skills_src.is_dir():
         for child in skills_src.iterdir():
+            if child.name == "test-second-opinion" and not include_fixtures:
+                continue
             if not child.is_dir():
                 continue
             if not (child / "SKILL.md").is_file():
@@ -96,17 +73,30 @@ def codex_exec(codex_cmd, repo, codex_home, prompt, auth_key):
         str(repo),
         "-s",
         "workspace-write",
-        "--dangerously-bypass-approvals-and-sandbox",
+        "-a",
+        "never",
+        "-c",
+        "sandbox_workspace_write.network_access=false",
+        "-c",
+        'shell_environment_policy.inherit="none"',
     ]
     model = os.environ.get("CODEX_E2E_MODEL")
     if model:
         cmd.extend(["-m", model])
     cmd.extend(["exec", prompt])
 
-    env = os.environ.copy()
-    env["CODEX_HOME"] = str(codex_home)
-    if auth_key and not env.get("OPENAI_API_KEY"):
-        env["OPENAI_API_KEY"] = auth_key
+    isolated_home = codex_home.parent / "home"
+    isolated_tmp = codex_home.parent / "tmp"
+    isolated_home.mkdir(exist_ok=True)
+    isolated_tmp.mkdir(exist_ok=True)
+    env = {
+        "PATH": os.defpath,
+        "HOME": str(isolated_home),
+        "TMPDIR": str(isolated_tmp),
+        "CODEX_HOME": str(codex_home),
+        "OPENAI_API_KEY": auth_key,
+        "LANG": "en_US.UTF-8",
+    }
     timeout = int(os.environ.get("CODEX_E2E_TIMEOUT", "600"))
     result = subprocess.run(
         cmd,
@@ -119,12 +109,14 @@ def codex_exec(codex_cmd, repo, codex_home, prompt, auth_key):
     )
     if result.returncode != 0:
         raise AssertionError(
-            f"codex exec failed (exit {result.returncode})\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+            f"codex exec failed (exit {result.returncode}); child output withheld to protect credentials"
         )
 
 
-def prepare_workspace(add_cleanup):
-    codex_cmd = os.environ.get("CODEX_E2E_CMD", "codex")
+def prepare_workspace(add_cleanup, *, include_fixtures=False):
+    codex_cmd = shutil.which(os.environ.get("CODEX_E2E_CMD", "codex"))
+    if codex_cmd is None:
+        raise unittest.SkipTest("Required tool not found: codex")
     _require_tool(codex_cmd)
     _require_tool("git")
 
@@ -133,9 +125,9 @@ def prepare_workspace(add_cleanup):
     tmp_path = Path(tmp.name)
 
     codex_home = tmp_path / "codex_home"
-    auth_key = _ensure_auth(codex_home)
-    _copy_config(codex_home)
-    _install_skills(codex_home)
+    auth_key = _ensure_auth()
+    _write_config(codex_home)
+    _install_skills(codex_home, include_fixtures=include_fixtures)
 
     repo = tmp_path / "workspace"
     repo.mkdir()

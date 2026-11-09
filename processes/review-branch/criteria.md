@@ -12,6 +12,7 @@ Optional flags:
 - `--base <master|main|custom>`
 - `--paths p1,p2,...`
 - `--no-merge-base`
+- `--merge-base` (explicit local base merge)
 - `--run-tests`
 
 ## 1) Baseline preparation
@@ -19,8 +20,9 @@ Optional flags:
 - Ensure `upstream` exists and fetch the latest base branch (`master`, fallback `main`).
 - Fetch the target review branch from a deterministic review remote.
 - Create a codex-owned local review branch under `codex/review/*`.
-- Use an isolated worktree and locally merge the latest upstream base into the review branch
-  unless the user explicitly requests `--no-merge-base`.
+- Use a fresh isolated worktree; never overwrite an existing review branch or worktree.
+- Keep the fetched review head unchanged by default. Locally merge the latest upstream
+  base only when the user explicitly requests `--merge-base`.
 
 Helper:
 - Use `processes/review-branch/prepare_review.sh` for repeatable setup.

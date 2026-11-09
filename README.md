@@ -9,36 +9,30 @@ show formatting and organization; exclude them from real reviews.
 
 ## Install
 
-### Codex CLI
-
-From the Codex CLI prompt, run:
-
-```bash
-$skill-installer https://github.com/PingCAP-QE/second-opinion
-```
-
-Restart Codex after installation to load the skill.
-
-### Claude Code
-
-Clone the repository into your Claude skills directory:
+Keep the source checkout separate from the installed skill. Export only production
+assets so adversarial fixtures and test-only skills are not installed:
 
 ```bash
-# Global install (available in all projects)
-git clone https://github.com/PingCAP-QE/second-opinion ~/.claude/skills/second-opinion
+git clone https://github.com/PingCAP-QE/second-opinion "$HOME/dev/second-opinion"
+cd "$HOME/dev/second-opinion"
 
-# Or project-local install
-git clone https://github.com/PingCAP-QE/second-opinion .claude/skills/second-opinion
+# Codex CLI (restart Codex afterward)
+python3 scripts/install_skill.py --destination "$HOME/.codex/skills/second-opinion"
+
+# Or Claude Code, global installation (no restart required)
+python3 scripts/install_skill.py --destination "$HOME/.claude/skills/second-opinion"
+
+# Or Claude Code, project-local installation; use the target project's path
+python3 scripts/install_skill.py --destination /path/to/project/.claude/skills/second-opinion
 ```
 
-No restart required. The skill is immediately available as `/second-opinion` or
-triggered automatically when you ask for a code review second opinion.
+The installer refuses an existing destination. To update, pull the source checkout,
+preserve the previous installation under a backup name, and export a fresh copy.
+Direct repository clones and generic whole-repository installers include test
+fixtures and are not the production installation path.
 
-To update later:
-
-```bash
-git -C ~/.claude/skills/second-opinion pull
-```
+See [safe E2E and preparation defaults](docs/e2e-security.md) for dedicated test
+credentials, fixture opt-in, and the `--merge-base` behavior change.
 
 ## Usage
 

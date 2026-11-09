@@ -12,7 +12,7 @@ from tests.e2e_helpers import codex_exec, prepare_workspace
 )
 class CodexE2EFixtureTest(unittest.TestCase):
     def _prepare_workspace(self):
-        return prepare_workspace(self.addCleanup)
+        return prepare_workspace(self.addCleanup, include_fixtures=True)
 
     def test_fixture_pipeline_sentinels(self):
         codex_cmd, codex_home, repo, _diff_path, auth_key = self._prepare_workspace()
