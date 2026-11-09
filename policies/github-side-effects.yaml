@@ -17,7 +17,7 @@ requirements:
   - Prefer comment modes in this order: inline, then file, then general.
   - Ensure inline comments are used when diff-resolvable; use file comments when only file anchoring is possible; use general comments only as a last resort.
   - File comments must be posted as PR review comments with `subject_type=file`.
-  - If inline comment posting fails due to unresolved line context, retry as file comment before using a general comment.
+  - If inline comment posting fails due to unresolved line context, retry as file comment before using a general comment, but only after renewed operator authorization for each changed fallback payload. A posting error does not authorize a mode or payload change.
   - Do not duplicate one finding across multiple comment modes.
   - When posting inline/file comments, do not add an extra review body comment per finding.
   - Every GitHub comment must end with `Source: <type>/<id> | [Second Opinion](https://github.com/PingCAP-QE/second-opinion)` on a single final line.

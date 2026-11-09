@@ -1,7 +1,9 @@
 # GitHub comment contract
 
-Apply this contract only when the user asks to post review findings to GitHub,
-or explicitly confirms posting after review outputs are complete.
+Apply the drafting and artifact requirements when the parent sets
+`review_context.draft_github_comments=true`. Apply the publication requirements
+only when the actual user asks to post review findings to GitHub, or explicitly
+confirms posting after review outputs are complete.
 
 The reviewer may prepare a payload draft only. Posting decisions and all `gh`
 operations below belong exclusively to the parent holding the actual user
@@ -47,4 +49,4 @@ Each comment entry should include:
 - `inline` mode: post PR review comment with `path`, `line`, and `side=RIGHT`.
 - `file` mode: post PR review comment with `path` and `subject_type=file` (no line).
 - `general` mode: use PR conversation comment only when neither inline nor file anchoring is possible.
-- If inline posting fails with a line-resolution validation error, retry once as `file` mode before using `general`.
+- If inline posting fails with a line-resolution validation error, retry once as `file` mode before using `general`, but only after renewed operator authorization for each changed fallback payload. A posting error does not authorize a mode or payload change.
