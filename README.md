@@ -78,6 +78,10 @@ GitHub comment posting contract:
 
 ## Repository layout
 
+For a host-enforced, tool-free review path and its integration requirements, see
+[reviewer capabilities](docs/reviewer-capabilities.md). A skill's prompt policy
+alone does not revoke the host's tools or credentials.
+
 - SKILL.md: Skill definition (compatible with both Codex CLI and Claude Code).
 - taxonomy.md: Controlled tag vocabulary used by all prompts.
 - prompts/: Tagger, compiler, and reviewer prompt templates.
