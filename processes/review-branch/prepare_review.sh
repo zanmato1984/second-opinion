@@ -9,7 +9,8 @@ Usage:
 Options:
   --base <branch>       (default: master, fallback to main)
   --paths p1,p2,...     (optional; prints priority paths)
-  --no-merge-base       (skip local merge of upstream base)
+  --merge-base          (opt in to local merge of upstream base)
+  --no-merge-base       (skip local merge; the default)
 Notes:
   - Requires local git remote named 'upstream'.
   - Does not run tests; CI is authoritative by default.
@@ -18,7 +19,7 @@ USAGE
 
 BASE_BRANCH="master"
 PATHS=""
-NO_MERGE_BASE="0"
+NO_MERGE_BASE="1"
 
 ARGS=()
 while [[ $# -gt 0 ]]; do
@@ -33,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-merge-base)
       NO_MERGE_BASE="1"
+      shift
+      ;;
+    --merge-base)
+      NO_MERGE_BASE="0"
       shift
       ;;
     -h|--help)
@@ -55,8 +60,17 @@ INPUT1="${ARGS[0]}"
 INPUT2="${ARGS[1]:-}"
 
 is_pr_url() {
-  [[ "$1" =~ ^https?:// ]] && [[ "$1" =~ /pull/([0-9]+) ]]
+  [[ "$1" =~ ^https://github\.com/[^/]+/[^/]+/pull/[0-9]+/?$ ]]
 }
+
+if [[ "$INPUT1" =~ ^(http|git):// ]]; then
+  echo "ERROR: Plaintext transports are not supported; use HTTPS or SSH."
+  exit 1
+fi
+if [[ "$INPUT1" == *"/pull/"* ]] && ! is_pr_url "$INPUT1"; then
+  echo "ERROR: Expected an HTTPS github.com PR URL."
+  exit 1
+fi
 
 require_upstream() {
   if ! git remote get-url upstream >/dev/null 2>&1; then
@@ -154,15 +168,15 @@ git fetch --prune "$REVIEW_REMOTE_NAME" "$REVIEW_BRANCH"
 SAFE_BRANCH="${REVIEW_BRANCH//\//_}"
 SAFE_BRANCH="$(printf '%s' "$SAFE_BRANCH" | tr -cd '[:alnum:]_.-')"
 RAW_BRANCH="codex/review/${SAFE_BRANCH}"
-git branch -f "$RAW_BRANCH" "$REVIEW_REMOTE_NAME/$REVIEW_BRANCH"
 
 WORKTREE_DIR="${REPO_ROOT}/.codex/worktrees/review-${SAFE_BRANCH}"
-if git worktree list --porcelain | grep -q "worktree ${WORKTREE_DIR}"; then
-  git worktree remove -f "$WORKTREE_DIR"
+if [[ -e "$WORKTREE_DIR" || -L "$WORKTREE_DIR" ]] || \
+   git show-ref --verify --quiet "refs/heads/$RAW_BRANCH"; then
+  echo "ERROR: Review worktree or branch already exists; preserve it and choose a fresh review."
+  exit 1
 fi
-rm -rf "$WORKTREE_DIR"
 
-git worktree add -B "$RAW_BRANCH" "$WORKTREE_DIR" "$RAW_BRANCH"
+git worktree add -b "$RAW_BRANCH" "$WORKTREE_DIR" "$REVIEW_REMOTE_NAME/$REVIEW_BRANCH"
 if [[ "$NO_MERGE_BASE" != "1" ]]; then
   echo "== Merging ${BASE_REF} into ${RAW_BRANCH} (local-only) =="
   (
