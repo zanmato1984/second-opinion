@@ -69,9 +69,22 @@ def _install_skills(codex_home, *, include_fixtures=False):
             )
 
 
+def _codex_launcher(codex_cmd):
+    # The npm CLI uses env to find Node. Select its trusted interpreter before
+    # discarding the parent PATH, without giving that PATH to Codex or shells.
+    with Path(codex_cmd).open("rb") as launcher:
+        shebang = launcher.readline(128).rstrip(b"\r\n")
+    if shebang == b"#!/usr/bin/env node":
+        node = shutil.which("node")
+        if node is None:
+            raise unittest.SkipTest("Required tool not found for npm Codex launcher: node")
+        return [str(Path(node).absolute()), str(Path(codex_cmd).absolute())]
+    # Native binaries and custom absolute-shebang launchers keep OS semantics.
+    return [codex_cmd]
+
+
 def codex_exec(codex_cmd, repo, codex_home, prompt, auth_key):
-    cmd = [
-        codex_cmd,
+    cmd = _codex_launcher(codex_cmd) + [
         "-C",
         str(repo),
         "-s",

@@ -1,6 +1,10 @@
+import json
 import os
 from pathlib import Path
+import shlex
+import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -38,13 +42,15 @@ class HarnessSecurityTests(unittest.TestCase):
         self.assertIn('shell_snapshot = false', config)
 
     def test_child_has_minimal_environment_and_no_unsandboxed_fallback(self):
+        launcher = self.root / "codex-launcher"
+        launcher.write_text("#!/bin/sh\nexit 1\n")
         with patch.dict(os.environ, {"GH_TOKEN": "github-secret", "AWS_SECRET_ACCESS_KEY": "aws-secret",
                                      "OPENAI_API_KEY": "personal-secret", "CODEX_API_KEY": "ambient-codex-secret",
                                      "CODEX_E2E_API_KEY": "test-secret"}, clear=True):
             self.assertEqual(helpers._ensure_auth(), "test-secret")
             with patch.object(helpers.subprocess, "run", return_value=subprocess.CompletedProcess([], 1, "test-secret", "test-secret")) as run:
                 with self.assertRaises(AssertionError) as error:
-                    helpers.codex_exec("codex", self.root, self.home, "review", "test-secret")
+                    helpers.codex_exec(str(launcher), self.root, self.home, "review", "test-secret")
         run.assert_called_once()
         argv = run.call_args.args[0]
         self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", argv)
@@ -59,6 +65,34 @@ class HarnessSecurityTests(unittest.TestCase):
         self.assertEqual(env["CODEX_API_KEY"], "test-secret")
         self.assertEqual(env["HOME"], str(self.root / "home"))
         self.assertNotIn("test-secret", str(error.exception))
+
+    def test_env_node_and_absolute_shebang_launchers_keep_restricted_path(self):
+        trusted_bin = self.root / "trusted-bin"
+        trusted_bin.mkdir()
+        node = trusted_bin / "node"
+        node.write_text(f'#!/bin/sh\nexec {shlex.quote(sys.executable)} "$@"\n')
+        node.chmod(0o755)
+        launcher = trusted_bin / "codex"
+        probe = (
+            "import json, os, pathlib, sys\n"
+            "pathlib.Path(os.environ['HOME'], 'launch.json').write_text(json.dumps({"
+            "'argv': sys.argv, 'path': os.environ['PATH'], "
+            "'ambient_secret': os.environ.get('AMBIENT_SECRET')}))\n"
+        )
+        for shebang in ("#!/usr/bin/env node", f"#!{sys.executable}"):
+            with self.subTest(shebang=shebang):
+                launcher.write_text(shebang + "\n" + probe)
+                launcher.chmod(0o755)
+                with patch.dict(os.environ, {"PATH": str(trusted_bin) + os.pathsep + os.defpath,
+                                             "AMBIENT_SECRET": "must-not-inherit"}, clear=True):
+                    selected = shutil.which("codex")
+                    self.assertEqual(selected, str(launcher))
+                    helpers.codex_exec(selected, self.root, self.home, "synthetic review", "synthetic-key")
+                result = json.loads((self.root / "home" / "launch.json").read_text())
+                self.assertEqual(result["argv"][0], str(launcher))
+                self.assertEqual(result["argv"][-2:], ["exec", "synthetic review"])
+                self.assertEqual(result["path"], os.defpath)
+                self.assertIsNone(result["ambient_secret"])
 
     def test_fixture_installation_is_explicit(self):
         helpers._install_skills(self.home)
@@ -212,6 +246,15 @@ class ReviewPreparationTests(unittest.TestCase):
         result = self.prepare_url(str(source))
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.git(self.worktree, "rev-parse", "HEAD").stdout.strip(), self.feature_sha)
+
+    def test_relative_local_directory_from_nested_cwd_is_repo_root_relative(self):
+        nested = self.repo / "nested"
+        nested.mkdir()
+        result = subprocess.run(["bash", str(SCRIPT), "../source", "feature", "--base", "main", "--no-merge-base"],
+                                cwd=nested, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.git(self.worktree, "rev-parse", "HEAD").stdout.strip(), self.feature_sha)
+        self.assertEqual(self.git(self.repo, "remote", "get-url", "codex_review_remote").stdout.strip(), "../source")
 
     def test_ssh_url_and_scp_style_use_allowed_transport(self):
         # Real Git's SSH transport with a local upload-pack, never a network call.

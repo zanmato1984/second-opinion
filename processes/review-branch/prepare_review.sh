@@ -14,6 +14,7 @@ Options:
 Notes:
   - Requires local git remote named 'upstream'.
   - Supports HTTPS, SSH (including host:path), and existing local directories.
+  - Relative local directory paths are resolved from the repository root.
   - Git URL rewrites must also use those transports; redirects default to disabled.
   - Does not run tests; CI is authoritative by default.
 USAGE
@@ -134,6 +135,10 @@ require_upstream() {
   done < <(git remote get-url --all upstream)
 }
 
+# Match Git fetch's root-relative local paths even when invoked in a subdirectory.
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
 if ! is_pr_url "$INPUT1"; then
   validate_transport "$INPUT1"
 elif [[ ${#ARGS[@]} -ne 1 ]]; then
@@ -141,8 +146,6 @@ elif [[ ${#ARGS[@]} -ne 1 ]]; then
   exit 1
 fi
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT"
 require_upstream
 
 REVIEW_REMOTE_URL=""

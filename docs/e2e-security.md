@@ -15,6 +15,9 @@ key or `CODEX_HOME`. Login shells and shell snapshots are disabled so startup
 profiles or captured shell state cannot replace that environment. Sandbox
 failures must fail the test; there is no unsandboxed fallback. The Codex
 executable is resolved before replacing PATH with the operating system default.
+For the npm launcher (`#!/usr/bin/env node`), Node is also resolved from the
+trusted parent PATH and invoked by absolute path; that parent PATH is not passed
+to the CLI or generated shells. Native and absolute-shebang launchers are unchanged.
 
 This reduces exposure; a temporary HOME is not an OS security boundary, and the
 CLI process still needs the dedicated API key to contact its model provider.
@@ -28,7 +31,9 @@ skill home. Fixtures remain in source control for tests.
 
 The branch preparation helper requires HTTPS github.com PR URLs. Direct remotes
 may use HTTPS, SSH (`ssh://` or `host:path`), or existing local directory paths
-(including spaces). Helper notation (`helper::address`), option-like operands,
+(including spaces). Relative local paths are resolved from the repository root,
+including when the helper is invoked from a subdirectory. Helper notation
+(`helper::address`), option-like operands,
 other schemes (including `file://` URLs), and plaintext HTTP/Git are rejected.
 Both the review URL and upstream/existing review remotes are checked after Git
 URL rewriting, before fetching. Fetches additionally enforce Git's protocol
