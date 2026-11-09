@@ -6,6 +6,7 @@ import shutil
 
 FILES = ("README.md", "SKILL.md", "taxonomy.md")
 DIRECTORIES = ("agents", "experts", "processes", "policies", "fragments", "prompts", "schemas")
+OPTIONAL_DIRECTORIES = ("docs", "runtime", "scripts")
 
 
 def install(source, destination, *, include_fixtures=False):
@@ -17,8 +18,11 @@ def install(source, destination, *, include_fixtures=False):
     destination.mkdir(parents=True)
     for name in FILES:
         shutil.copy2(source / name, destination / name)
-    for name in DIRECTORIES:
-        shutil.copytree(source / name, destination / name)
+    for name in (*DIRECTORIES, *OPTIONAL_DIRECTORIES):
+        if name in OPTIONAL_DIRECTORIES and not (source / name).is_dir():
+            continue
+        shutil.copytree(source / name, destination / name,
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     if include_fixtures:
         shutil.copytree(source / "tests" / "fixtures", destination / "tests" / "fixtures")
 
