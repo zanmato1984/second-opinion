@@ -57,6 +57,9 @@ class HarnessSecurityTests(unittest.TestCase):
         installed = self.home / "skills" / "second-opinion"
         self.assertTrue((installed / "prompts" / "reviewer.prompt").is_file())
         self.assertFalse((installed / "tests").exists())
+        self.assertTrue((installed / "scripts" / "install_skill.py").is_file())
+        self.assertTrue((installed / "docs" / "e2e-security.md").is_file())
+        self.assertFalse(list(installed.rglob("__pycache__")))
         self.assertFalse((self.home / "skills" / "test-second-opinion").exists())
         fixture_home = self.root / "fixture-codex"
         helpers._install_skills(fixture_home, include_fixtures=True)
@@ -148,3 +151,10 @@ class ReviewPreparationTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("ERROR:", result.stdout)
         self.assertFalse(self.worktree.exists())
+
+    def test_option_like_branch_is_rejected_before_fetch(self):
+        result = subprocess.run(["bash", str(SCRIPT), str(self.source), "--upload-pack=unexpected", "--base", "main"],
+                                cwd=self.repo, env=self.env, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Invalid base or review branch", result.stdout)
+        self.assertNotIn("Fetching", result.stdout)

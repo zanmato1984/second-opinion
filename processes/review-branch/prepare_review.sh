@@ -112,7 +112,7 @@ if is_pr_url "$INPUT1"; then
       AUTH_HEADER=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
     fi
 
-    JSON="$(curl -sSL "${AUTH_HEADER[@]}" -H "Accept: application/vnd.github+json" "$API")"
+    JSON="$(curl -sSL --proto '=https' --proto-redir '=https' "${AUTH_HEADER[@]}" -H "Accept: application/vnd.github+json" "$API")"
     REVIEW_BRANCH="$(printf '%s' "$JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["ref"])')"
     REVIEW_REMOTE_URL="$(printf '%s' "$JSON" | python3 -c 'import json,sys; repo=json.load(sys.stdin)["head"]["repo"]; print(repo.get("ssh_url") or repo.get("clone_url") or "")')"
     PR_BASE_REF="$(printf '%s' "$JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)["base"]["ref"])')"
@@ -134,6 +134,13 @@ else
   fi
   REVIEW_REMOTE_URL="$INPUT1"
   REVIEW_BRANCH="$INPUT2"
+fi
+
+if [[ "$BASE_BRANCH" == -* || "$REVIEW_BRANCH" == -* ]] || \
+   ! git check-ref-format "refs/heads/$BASE_BRANCH" || \
+   ! git check-ref-format "refs/heads/$REVIEW_BRANCH"; then
+  echo "ERROR: Invalid base or review branch name."
+  exit 1
 fi
 
 echo "== Fetching latest upstream/${BASE_BRANCH} =="
