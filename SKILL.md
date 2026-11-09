@@ -15,6 +15,9 @@ Use the tool-free reference path in scripts/review_only.py from a trusted source
 checkout, or an equivalent restricted host. See docs/reviewer-capabilities.md.
 If the host cannot provide this boundary, do not launch an unrestricted reviewer;
 report the missing host integration. A prompt rule is not enforcement.
+Apply this restriction to tagger/compiler models processing untrusted source too.
+Keep authorization and mutation endpoints in trusted host code, not in an
+unrestricted parent agent that also reads the hostile diff.
 
 ## Asset Location (Claude Code only)
 
