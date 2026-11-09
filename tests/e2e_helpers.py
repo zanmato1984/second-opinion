@@ -39,8 +39,11 @@ def _write_config(codex_home):
     (codex_home / "config.toml").write_text(
         'approval_policy = "never"\n'
         'sandbox_mode = "workspace-write"\n'
+        'allow_login_shell = false\n'
+        '[features]\nshell_snapshot = false\n'
         '[sandbox_workspace_write]\nnetwork_access = false\n'
-        '[shell_environment_policy]\ninherit = "none"\n',
+        '[shell_environment_policy]\ninherit = "core"\n'
+        'include_only = ["HOME", "PATH", "TMPDIR", "LANG"]\n',
         encoding="utf-8",
     )
 
@@ -78,7 +81,13 @@ def codex_exec(codex_cmd, repo, codex_home, prompt, auth_key):
         "-c",
         "sandbox_workspace_write.network_access=false",
         "-c",
-        'shell_environment_policy.inherit="none"',
+        'shell_environment_policy.inherit="core"',
+        "-c",
+        'shell_environment_policy.include_only=["HOME","PATH","TMPDIR","LANG"]',
+        "-c",
+        "allow_login_shell=false",
+        "--disable",
+        "shell_snapshot",
     ]
     model = os.environ.get("CODEX_E2E_MODEL")
     if model:
@@ -94,7 +103,9 @@ def codex_exec(codex_cmd, repo, codex_home, prompt, auth_key):
         "HOME": str(isolated_home),
         "TMPDIR": str(isolated_tmp),
         "CODEX_HOME": str(codex_home),
-        "OPENAI_API_KEY": auth_key,
+        # The built-in OpenAI provider's non-interactive auth reads CODEX_API_KEY.
+        # Do not copy personal auth.json or expose the key to generated shells.
+        "CODEX_API_KEY": auth_key,
         "LANG": "en_US.UTF-8",
     }
     timeout = int(os.environ.get("CODEX_E2E_TIMEOUT", "600"))
@@ -102,6 +113,7 @@ def codex_exec(codex_cmd, repo, codex_home, prompt, auth_key):
         cmd,
         cwd=repo,
         env=env,
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
