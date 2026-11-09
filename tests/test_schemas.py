@@ -5,6 +5,10 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 SCHEMAS = {
+    "review_context": {
+        "path": ROOT / "schemas" / "review-context.schema.json",
+        "required": ["language", "focus", "budget", "process_override", "draft_github_comments"],
+    },
     "selection": {
         "path": ROOT / "schemas" / "selection.schema.json",
         "required": ["signals", "tags"],

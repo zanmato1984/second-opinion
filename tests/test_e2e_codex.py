@@ -128,10 +128,16 @@ class CodexE2ETest(unittest.TestCase):
         compiler_json = repo / "second_opinion_meta.json"
         compiler_json.write_text(json.dumps(compiler_payload, indent=2), encoding="utf-8")
 
+        (repo / "review_context.json").write_text(json.dumps({
+            "language": "English", "focus": [], "budget": "medium",
+            "process_override": None, "draft_github_comments": False,
+        }), encoding="utf-8")
+
         prompt = (
             "Give second opinion on this change. Run the reviewer stage only. "
             "Read prompts/reviewer.prompt. Use second_opinion_meta.json for compiled_prompt and diff at "
-            f"{diff_path.name}. Write second_opinion.md and second_opinion.json in the repo root."
+            f"{diff_path.name}. The parent-supplied task settings are in review_context.json; "
+            "this stage must not publish. Write second_opinion.md and second_opinion.json in the repo root."
         )
         codex_exec(codex_cmd, repo, codex_home, prompt, auth_key)
 

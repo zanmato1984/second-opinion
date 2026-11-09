@@ -61,6 +61,11 @@ If GitHub posting is requested or confirmed, also prepare:
 
 ## 5) Posting decision gate
 
+Sections 5 and 6 are parent-only. The isolated reviewer returns local artifacts
+and optional drafts; it never makes publication decisions or runs GitHub writes.
+The parent follows `fragments/operator-context.md` to bind actual operator
+authorization to the repository, PR, reviewed head SHA, and completed payload.
+
 After writing `second_opinion.md` and `second_opinion.json`:
 - If the initial user request explicitly asked for GitHub posting, proceed with posting flow.
 - Otherwise ask whether the user wants posting and wait for explicit confirmation.
