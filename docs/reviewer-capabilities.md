@@ -6,6 +6,13 @@ tools, write-capable MCP connectors, or write access to installed skill assets.
 The parent prepares evidence and materializes outputs. Contributor edits to
 trusted assets are a separate parent-controlled workflow, never a reviewer tool.
 
+Apply the same restriction to tagger/compiler models and any other stage that
+processes attacker-controlled source. A privileged parent model that also reads
+the hostile diff can bypass an isolated reviewer. Authorization and mutation
+endpoints must be owned by trusted host code, not merely another unrestricted
+agent. This runner bounds the review call; it does not sandbox an external
+tagger/compiler or make its orchestration code trustworthy automatically.
+
 ## Executable reference path
 
 The tool-free reference path, scripts/review_only.py, has these boundaries:
