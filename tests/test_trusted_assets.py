@@ -213,3 +213,32 @@ raise SystemExit(runner.main(sys.argv[2:]))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(sentinel.exists())
         self.assertIn("--review-root", result.stdout)
+
+    def test_provider_wait_cannot_redirect_pinned_outputs_into_trusted_install(self):
+        exported = self.root / "installed"
+        install(ROOT, exported)
+        (exported / "leaf").mkdir()
+        diff = self.reviewed / "patch.diff"
+        diff.write_text("+ synthetic evidence\n")
+        for ancestor in (False, True):
+            with self.subTest(ancestor=ancestor):
+                base = self.root / f"outputs-{ancestor}"
+                output = base / "leaf"
+                output.mkdir(parents=True)
+                retained = self.root / f"retained-{ancestor}"
+                def swap_path(payload, key):
+                    selected = base if ancestor else output
+                    selected.rename(retained)
+                    selected.symlink_to(exported, target_is_directory=True)
+                    return {"status": "completed", "output": [{"type": "message", "role": "assistant",
+                            "status": "completed", "content": [{"type": "output_text", "text": '{"findings":[]}'}]}]}
+                with patch.object(review_only, "ROOT", exported), patch.dict(os.environ, {"SECOND_OPINION_API_KEY": "synthetic"}), \
+                     patch.object(review_only, "request_review", side_effect=swap_path) as request:
+                    result = review_only.main(["--review-root", str(self.reviewed), "--diff", str(diff),
+                                               "--language", "English", "--model", "synthetic", "--output-dir", str(output)])
+                self.assertEqual(result, 0)
+                request.assert_called_once()
+                actual = retained / "leaf" if ancestor else retained
+                self.assertEqual({path.name for path in actual.iterdir()}, set(review_only.OUTPUTS))
+                self.assertFalse(any((exported / name).exists() or (exported / "leaf" / name).exists()
+                                     for name in review_only.OUTPUTS))

@@ -161,25 +161,47 @@ def render_markdown(review):
     return "\n".join(lines) + "\n"
 
 
-def write_artifacts(directory, review, metadata):
+def open_output_directory(directory):
+    """Pin the checked directory before reading source or waiting on a model.
+
+    Walk its resolved absolute path through directory FDs without following
+    symlinks. Later path/symlink replacements cannot redirect artifact writes.
+    """
+    directory = Path(directory).resolve(strict=True)
+    if directory == ROOT or ROOT in directory.parents:
+        raise PermissionError("Review outputs must be outside the trusted installation")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    fd = os.open(directory.anchor, flags)
+    try:
+        for component in directory.parts[1:]:
+            child = os.open(component, flags, dir_fd=fd)
+            os.close(fd)
+            fd = child
+        return fd
+    except Exception:
+        os.close(fd)
+        raise
+
+
+def check_outputs(directory_fd):
+    for name in OUTPUTS:
+        try:
+            os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            continue
+        raise FileExistsError("Review artifacts already exist; choose a fresh output directory")
+
+
+def write_artifacts(directory_fd, review, metadata):
     validate(review, parse_json(read_text(ROOT / "schemas" / "review.schema.json")))
     contents = (json.dumps(review, indent=2, ensure_ascii=False) + "\n", render_markdown(review),
                 json.dumps(metadata, indent=2, ensure_ascii=True) + "\n")
     # Model content never supplies output paths. O_EXCL also refuses symlink targets.
-    directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
-    try:
-        for name in OUTPUTS:
-            try:
-                os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
-            except FileNotFoundError:
-                continue
-            raise FileExistsError("Review artifacts already exist; choose a fresh output directory")
-        for name, content in zip(OUTPUTS, contents):
-            fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=directory_fd)
-            with os.fdopen(fd, "w", encoding="utf-8") as handle:
-                handle.write(content)
-    finally:
-        os.close(directory_fd)
+    check_outputs(directory_fd)
+    for name, content in zip(OUTPUTS, contents):
+        fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=directory_fd)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(content)
 
 
 def main(argv=None):
@@ -193,17 +215,13 @@ def main(argv=None):
     parser.add_argument("--model", required=True, help="Operator-selected model supporting structured output")
     parser.add_argument("--output-dir", required=True, type=Path, help="Existing directory without prior artifacts")
     args = parser.parse_args(argv)
+    output_fd = None
     try:
-        output = args.output_dir.resolve(strict=True)
-        if output == ROOT or ROOT in output.parents:
-            raise PermissionError("Review outputs must be outside the trusted installation")
+        output_fd = open_output_directory(args.output_dir)
+        check_outputs(output_fd)
         api_key = os.environ.get("SECOND_OPINION_API_KEY")
         if not api_key:
             raise ValueError("Set SECOND_OPINION_API_KEY in the trusted runner environment")
-        if not args.output_dir.is_dir():
-            raise ValueError("Output directory must exist")
-        if any((args.output_dir / name).exists() or (args.output_dir / name).is_symlink() for name in OUTPUTS):
-            raise FileExistsError("Review artifacts already exist")
         # Pin the audit snapshot before reading attacker evidence; verify the
         # request uses the same complete criteria before provider I/O.
         metadata = compile_review(args.review_root, args.process)
@@ -213,11 +231,14 @@ def main(argv=None):
         if not payload["instructions"].endswith(metadata["compiled_prompt"]):
             raise ValueError("Trusted assets changed while constructing the request")
         result = extract_findings(request_review(payload, api_key))
-        write_artifacts(args.output_dir, result, metadata)
+        write_artifacts(output_fd, result, metadata)
     except (ValueError, OSError, URLError, RecursionError) as error:
         # Never print provider bodies, credentials, or attacker-controlled output.
         print(f"Review failed ({type(error).__name__}); no tool calls were executed.", file=sys.stderr)
         return 1
+    finally:
+        if output_fd is not None:
+            os.close(output_fd)
     return 0
 
 

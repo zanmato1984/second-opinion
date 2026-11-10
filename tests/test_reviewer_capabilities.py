@@ -102,8 +102,12 @@ class ReviewerCapabilityTests(unittest.TestCase):
         protected.write_text("keep me")
         artifact = self.output / "second_opinion.md"
         artifact.symlink_to(protected)
-        with self.assertRaises(FileExistsError):
-            reviewer.write_artifacts(self.output, self.findings, {})
+        output_fd = reviewer.open_output_directory(self.output)
+        try:
+            with self.assertRaises(FileExistsError):
+                reviewer.write_artifacts(output_fd, self.findings, {})
+        finally:
+            os.close(output_fd)
         self.assertEqual(protected.read_text(), "keep me")
         self.assertFalse((self.output / "second_opinion.json").exists())
         with patch.dict(os.environ, {"SECOND_OPINION_API_KEY": "test-only"}):

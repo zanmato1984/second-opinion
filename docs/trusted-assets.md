@@ -16,10 +16,12 @@ This conservative mode trades prompt size and relevance for a smaller trusted
 boundary: it needs no model tagger/compiler at all. Language and focus limit the
 assessment, not the mandatory side-effect restrictions.
 
-The exact compiled criteria and SHA-256 of each consumed asset are written as
+The exact compiled criteria and SHA-256 of each compiled criteria asset are written as
 `second_opinion_meta.json` alongside findings. These are an audit record, not an
 input or transferable authorization. Missing mandatory policies/workflows/output
-contracts fail closed. Output directories inside the trusted install are refused.
+contracts fail closed. Output directories inside the trusted install are refused;
+the checked directory is pinned by a descriptor before provider I/O so replacing
+its path during the call cannot redirect the fixed artifact writes.
 The criteria are attached to the trusted instructions; diff and optional evidence
 remain separate user data. No prompt text from the target can select policies.
 
