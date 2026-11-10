@@ -32,6 +32,30 @@ Production exports also omit all sample foo assets. Do not install into the
 repository being reviewed: project-local and CWD asset discovery is unsupported.
 The trusted host must use the pinned [asset loader](docs/trusted-assets.md).
 
+### Pinned executable review
+
+The supported reference CLI builds criteria in trusted Python, then makes one
+tool-free model call. It does not accept a model-generated compiler file or run
+a model tagger/compiler. It includes all production experts and mandatory
+policies in stable order; this costs more prompt tokens than selective compilation.
+Run an absolute script from a separate trusted installation, with isolated Python:
+
+```sh
+python3 -I /path/to/trusted/second-opinion/scripts/review_only.py \
+  --review-root /path/to/target-repository --diff /path/to/selected.diff \
+  --process pr-review --language English --model "$REVIEW_MODEL" \
+  --output-dir /path/to/fresh-output-directory
+```
+
+The operator supplies a dedicated `SECOND_OPINION_API_KEY` through the trusted
+runner environment. Do not reuse a personal Codex/Claude session or launch this
+from a model stage that has already ingested hostile source with privileges.
+The output directory must exist, be outside the trusted install, and have no
+prior artifacts. The runner writes findings JSON, Markdown, and compiled metadata
+with criteria hashes. `--compiled` is deliberately unsupported. The model-based
+workflow contract below applies only to legacy equivalently restricted hosts;
+the reference CLI uses deterministic compilation instead.
+
 See [safe E2E and preparation defaults](docs/e2e-security.md) for dedicated test
 credentials, fixture opt-in, and the `--merge-base` behavior change.
 
