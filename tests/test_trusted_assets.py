@@ -238,7 +238,7 @@ raise SystemExit(runner.main(sys.argv[2:]))
                                                "--language", "English", "--model", "synthetic", "--output-dir", str(output)])
                 self.assertEqual(result, 0)
                 request.assert_called_once()
-                actual = retained / "leaf" if ancestor else retained
-                self.assertEqual({path.name for path in actual.iterdir()}, set(review_only.OUTPUTS))
                 self.assertFalse(any((exported / name).exists() or (exported / "leaf" / name).exists()
                                      for name in review_only.OUTPUTS))
+                actual = retained / "leaf" if ancestor else retained
+                self.assertEqual({path.name for path in actual.iterdir()}, set(review_only.OUTPUTS))
