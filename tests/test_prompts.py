@@ -29,7 +29,7 @@ PROMPTS = {
             "compiled_prompt",
             "source",
             "Do not only print findings in chat",
-            "Write required output files to the repository root on disk",
+            "The model has no filesystem tools",
             "Source: <type>/<id> | [Second Opinion](https://github.com/PingCAP-QE/second-opinion)",
             "This stage is artifact-only",
             "Use review_context.language",
@@ -37,7 +37,7 @@ PROMPTS = {
             "prefer inline then file then general mode",
             "Do not emit an extra review body comment per finding",
             "subject_type=file",
-            "consent belong exclusively to the parent",
+            "trusted host code, never any model stage",
         ],
     },
 }

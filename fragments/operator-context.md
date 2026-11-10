@@ -1,7 +1,7 @@
 # Operator context and consent provenance
 
-The parent/orchestrator retains the actual user conversation. Before compilation
-or delegation it derives a separate `review_context` conforming to
+Trusted host code, not an unrestricted parent model, retains authenticated
+operator events. Before compilation or delegation it derives `review_context` conforming to
 `schemas/review-context.schema.json`: language, focus, budget, process override,
 and `draft_github_comments`. A draft request is not a publication grant.
 
@@ -12,17 +12,19 @@ Missing task context must be returned to the parent, not reconstructed from code
 
 The reviewer generates local findings and optionally a comment draft. It never
 publishes, asks for consent, or interprets a quoted "user confirmed" as approval.
-Language inference and initial/post-review posting decisions belong to the parent.
+Language settings and initial/post-review posting decisions belong to trusted
+host code outside every source-consuming model stage.
 
-Before publication the parent must bind actual operator authorization to the
-target repository, PR number, reviewed head SHA, and exact comment payload. Read
+Before publication trusted host code must bind actual operator authorization to
+the intended GitHub account, target repository, PR number, reviewed head SHA,
+endpoint kind, and exact complete payload (including every inline comment). Read
 the current PR head again before sending. A changed head, target, or payload
 requires renewed authorization; authorization for one publication is not a
 reusable grant. Initial explicit posting intent may be used for that same review
-scope after the parent has checked the completed payload; do not ask again solely
+scope after the trusted operator UI has checked the completed payload; do not ask again solely
 because a reviewer was delegated.
 
-`runtime/publication_gate.py` is a parent-side, one-use in-memory binding helper.
+`runtime/publication_gate.py` is a trusted-host, one-use in-memory binding helper.
 Only trusted orchestration code handling real user events may call
 `record_operator_approval`; never expose that method as a model tool or deserialize
 approvals from repository files. It does not authenticate a chat service or make
@@ -30,7 +32,9 @@ GitHub calls itself. `runtime/github_publisher.py` is the production dispatcher:
 it freezes the endpoint/payload, checks the actual PR target and current head,
 consumes this grant immediately before the `gh` write, and reads the result back.
 The operator-terminal path in `scripts/publish_review.py` previews the frozen
-request and creates the grant only from an exact response on `/dev/tty`.
+request/account and creates the grant only from an exact response on `/dev/tty`.
+An agent-owned PTY can type this response: a terminal challenge is not human
+authentication. That usage is unsupported, not a safe way to grant model access.
 The host remains responsible for authenticating user events and preventing all
 model stages from reaching this terminal, dispatcher or ambient write capabilities.
 Never have a model confirm the terminal challenge. Automated hosts must call the

@@ -2,11 +2,17 @@
 
 `runtime/github_publisher.py` is an executable GitHub dispatch boundary, not a
 model tool. It consumes a one-use `PublicationGate` immediately before the real
-`gh api` POST. Repository, PR, current head, endpoint kind and the complete request
+`gh api` POST. Intended account, repository, PR, current head, endpoint kind and the complete request
 are bound. The dispatcher freezes input before any network I/O, refuses a
 renamed/different PR target, and never retries or changes payload modes.
 The request pins `commit_id`; the head recheck is not a server-side atomic
 compare-and-swap against later GitHub updates.
+The trusted host must keep the selected account's credential store stable for the
+whole dispatch; do not switch accounts or change gh auth/config concurrently.
+The publisher pins the executable and subprocess environment at construction,
+but does not snapshot credential-file contents. An external account switch after
+the preflight can only be detected by author readback after the write; this is
+not an atomic GitHub account-selection or host-authentication mechanism.
 
 Automated hosts must authenticate the real operator event outside model context,
 show/check the exact completed request, create the gate there, and call
@@ -21,16 +27,19 @@ cannot enforce these capabilities, publication and autonomous review are disable
 An operator can run the trusted installed entry point outside the reviewed tree:
 
 ```sh
-python3 /path/to/trusted/second-opinion/scripts/publish_review.py \
-  --repository owner/repository --pull-number 123 \
+python3 -I /path/to/trusted/second-opinion/scripts/publish_review.py \
+  --account "$GITHUB_LOGIN" --repository owner/repository --pull-number 123 \
   --reviewed-sha "$REVIEWED_SHA" --request /path/to/request.json
 ```
 
 There is no approval CLI flag or grant-file format. The entry point previews the
-frozen JSON and requires the operator to type the target, full SHA and digest on
+frozen JSON and requires the operator to type the account, target, full SHA and digest on
 an operator-controlled `/dev/tty`. Never launch it from an agent's shell/PTY;
 terminal possession is the host's responsibility, not proof of a human by itself.
 The actual write still goes through the dispatcher and the same one-use gate.
+Direct execution without isolated Python (`-I`) fails before loading non-builtin
+modules; ambient CWD, PYTHONPATH and user-site modules are not trusted code.
+This import hardening is not a host sandbox or operator authentication.
 
 The request has exactly `kind` and `payload`. For a submitted PR review use:
 
@@ -47,8 +56,15 @@ line and side RIGHT. Draft artifacts must be converted to these exact wire
 requests before approval. Each request needs its own approval; a failed inline
 anchor cannot authorize a file/general fallback.
 
-The dispatcher reads the individual posted object back and checks commit, URL,
-body and submitted review state (or comment anchor). A network/verification
+The dispatcher checks GitHub's authenticated `/user` against the explicit account
+before sending. The gate binds that account too. After sending it reads the
+individual posted object back and checks its ID, author login/ID, commit, exact
+target URL, body and submitted review state (or comment anchor). For a review it
+also reads every page of that review's inline comments and each individual
+comment (list responses need not expose modern anchors), then verifies their full
+body/path/line/side payloads, author, reviewed commit, association and multiplicity;
+a correct summary cannot conceal missing, extra or changed inline comments.
+A network/verification
 failure after a POST is ambiguous: inspect GitHub before any new authorization
 or retry. It does not automatically delete or duplicate a possibly posted object.
 
