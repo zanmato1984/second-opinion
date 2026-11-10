@@ -1,8 +1,9 @@
 # Second Opinion
 
 Second Opinion is a contributor-driven repository for building a structured
-code review skill. The system uses a prompt pipeline (tagger → compiler →
-reviewer) and a controlled taxonomy to produce attributable review outputs.
+code review system. The reference runner compiles pinned criteria in trusted
+Python and makes one tool-free review call. A legacy prompt pipeline
+(tagger → compiler → reviewer) remains for equivalently restricted integrations.
 
 This repo includes sample foo assets in each contributor asset directory to
 show formatting and organization; exclude them from real reviews.
@@ -16,11 +17,8 @@ assets so adversarial fixtures and test-only skills are not installed:
 git clone https://github.com/PingCAP-QE/second-opinion "$HOME/dev/second-opinion"
 cd "$HOME/dev/second-opinion"
 
-# Codex CLI (restart Codex afterward)
-python3 scripts/install_skill.py --destination "$HOME/.codex/skills/second-opinion"
-
-# Or Claude Code, global installation (no restart required)
-python3 scripts/install_skill.py --destination "$HOME/.claude/skills/second-opinion"
+# Standalone trusted installation, outside automatic agent skill discovery
+python3 scripts/install_skill.py --destination "$HOME/.local/share/second-opinion"
 
 ```
 
@@ -28,6 +26,9 @@ The installer refuses an existing destination. To update, pull the source checko
 preserve the previous installation under a backup name, and export a fresh copy.
 Direct repository clones and generic whole-repository installers include test
 fixtures and are not the production installation path.
+Do not install this as a native unrestricted Codex/Claude workflow. Their
+automatic skill discovery does not enforce model capabilities or consent. A
+restricted host adapter is required before enabling a native integration.
 Production exports also omit all sample foo assets. Do not install into the
 repository being reviewed: project-local and CWD asset discovery is unsupported.
 The trusted host must use the pinned [asset loader](docs/trusted-assets.md).
