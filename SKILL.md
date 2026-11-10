@@ -34,6 +34,16 @@ the target tree and read-only to every model stage. Do not discover the active
 skill by searching the target repository. Source-checkout use is allowed only
 when the trusted source and the reviewed tree are separate.
 
+The supported reference CLI compiles from these pinned bytes itself, without a
+model tagger/compiler. Use `python3 -I /absolute/trusted/install/scripts/review_only.py --review-root <target-tree>
+--diff <explicit-diff-file> --language <language> --model <model> --output-dir
+<fresh-output-directory>`. It includes all production experts and policies;
+`--process` chooses `pr-review` or `review-branch` without disabling guardrails.
+Do not pass external `compiled_prompt` or asset-root claims: `--compiled` is not
+accepted. The CLI writes the exact criteria and asset hashes to metadata.
+The model-based workflow below is for equivalently restricted integrations only,
+not permission to run these stages in an unrestricted Codex/Claude conversation.
+
 ## Workflow
 
 - Infer the review-output language from the user prompt that triggers

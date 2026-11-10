@@ -17,8 +17,12 @@ tagger/compiler or make its orchestration code trustworthy automatically.
 
 The tool-free reference path, scripts/review_only.py, has these boundaries:
 
-- The trusted caller explicitly supplies compiler metadata, diff, language,
-  focus, and optional evidence files. There is no automatic repository traversal.
+- Trusted Python compiles criteria directly from its pinned production assets;
+  there is no model tagger/compiler or externally supplied compiled prompt in
+  this path. All production experts/policies are retained; the operator chooses
+  `--process pr-review` or `--process review-branch` without disabling policies.
+  The caller supplies diff, language, focus and optional evidence files.
+  There is no automatic repository traversal.
 - One Responses API request advertises no tools and sets tool_choice to none.
   No shell, file, HTTP, GitHub, MCP, or plugin capability is exposed to the model.
 - The runner owns provider authentication; credentials are not placed in model
@@ -26,7 +30,8 @@ The tool-free reference path, scripts/review_only.py, has these boundaries:
   ambient proxies. It does not read GitHub credentials or personal agent config.
 - Tool-call output, refusals, incomplete responses, malformed JSON, and findings
   outside the closed review schema fail rather than becoming executable actions.
-- Only the two fixed review artifact names are written by trusted Python code.
+- Only the three fixed review artifact names are written by trusted Python code
+  (findings JSON, Markdown and exact compiled metadata with asset hashes).
   Existing artifacts and symlinks are refused. Model-supplied file paths are
   finding labels, not I/O destinations; Markdown fields are escaped.
 
@@ -35,15 +40,14 @@ being reviewed. Python loaded from a hostile checkout is outside this boundary.
 Choose an approved provider/model and supply a dedicated API key to the caller.
 For example, with SECOND_OPINION_API_KEY securely set in the caller environment:
 
-    python3 /path/to/trusted/second-opinion/scripts/review_only.py \
-      --compiled /path/to/second_opinion_meta.json \
+    python3 -I /path/to/trusted/second-opinion/scripts/review_only.py \
       --review-root /path/to/reviewed/repository \
       --diff /path/to/change.diff \
       --context-file /path/to/selected-source.txt \
-      --language English --model "$REVIEW_MODEL" \
+      --process pr-review --language English --model "$REVIEW_MODEL" \
       --output-dir /path/to/output
 
-The output directory must already exist; normally choose the reviewed repository
+The output directory must already exist and be outside the trusted installation; normally choose the reviewed repository
 root or a fresh task directory. The runner writes findings only, never GitHub
 payloads or remote posts. Preserve/relocate old artifacts before another run.
 An interrupted write can leave partial artifacts: a failed run is not permission

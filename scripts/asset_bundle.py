@@ -1,9 +1,13 @@
 """Read production assets from this trusted installation, never the target tree."""
 
+import sys
+
+if __name__ == "__main__" and not sys.flags.isolated:
+    sys.exit("Run this trusted entry point with python3 -I (isolated Python).")
+
 import argparse
 import json
 from pathlib import Path
-import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from runtime.trusted_assets import bundle
