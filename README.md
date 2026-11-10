@@ -41,8 +41,8 @@ to review a diff, PR, or commit range. Read [reviewer capabilities](docs/reviewe
 before target content is loaded. Native unrestricted Codex/Claude skill execution
 is disabled: an installed Markdown skill cannot remove shell, connector,
 credentials, or trusted-asset write access. Context isolation alone is insufficient.
-The companion asset-provenance repair supplies the fully pinned deterministic
-compilation path; this publication repair alone does not establish input provenance.
+Tool-free calls alone do not establish compiler-input provenance: the host must
+also enforce compilation from pinned trusted assets before enabling the full workflow.
 
 Minimum prompts:
 

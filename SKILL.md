@@ -9,9 +9,9 @@ Perform this preflight before reading target content. Native unrestricted
 Codex/Claude skill execution is disabled: installing this Markdown does not
 remove tools, credentials, or asset-write access. The supported default is a
 trusted standalone tool-free review call, not a model manually running this
-workflow with shell tools. The companion asset-provenance repair is required for
-the fully pinned deterministic compilation path; this publication repair alone
-does not establish compiler-input provenance. Every external model stage still
+workflow with shell tools. Tool-free model calls alone do not establish
+compiler-input provenance: hosts must also enforce compilation from pinned
+trusted assets before enabling a complete pipeline. Every external model stage
 requires an equivalently enforced tool-free integration.
 
 ## Host capability preflight
