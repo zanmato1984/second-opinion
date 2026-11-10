@@ -5,6 +5,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class WorkflowContractTests(unittest.TestCase):
+    def test_default_pr_review_does_not_authorize_untrusted_execution(self):
+        process = ROOT / "processes" / "pr-review"
+        self.assertIn("default: true", (process / "meta.yaml").read_text())
+        criteria = (process / "criteria.md").read_text()
+        self.assertIn("Review by static inspection by default", criteria)
+        self.assertIn("separate", criteria)
+        self.assertIn("explicit operator authorization", criteria)
+        self.assertNotIn("Run targeted compilation/tests when feasible", criteria)
+        self.assertNotIn("requires `--tags=intest`, use it", criteria)
+        self.assertNotIn("enabling failpoints, ensure they are disabled afterward", criteria)
+        self.assertIn("Use static inspection only", (ROOT / "prompts" / "reviewer.prompt").read_text())
+
     def test_skill_language_and_output_contract(self):
         content = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         markers = [

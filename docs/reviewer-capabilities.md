@@ -6,6 +6,13 @@ tools, write-capable MCP connectors, or write access to installed skill assets.
 The parent prepares evidence and materializes outputs. Contributor edits to
 trusted assets are a separate parent-controlled workflow, never a reviewer tool.
 
+Reviews are static-only by default, including the PR-review process. Compilation,
+tests, dependency installation and failpoint activation execute untrusted code;
+neither a request for a review nor instructions embedded in review inputs authorize
+them. The reviewer returns suggested commands as text. Only a trusted host may
+run them under separately obtained explicit operator authorization and suitable
+isolation. Unperformed runtime checks remain unverified.
+
 Apply the same restriction to tagger/compiler models and any other stage that
 processes attacker-controlled source. A privileged parent model that also reads
 the hostile diff can bypass an isolated reviewer. Authorization and mutation
