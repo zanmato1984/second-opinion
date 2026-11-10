@@ -8,6 +8,8 @@ import re
 def _binding(repository, pull_number, head_sha, payload):
     if not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise ValueError("Expected owner/repository")
+    if any(part in (".", "..") for part in repository.split("/")):
+        raise ValueError("Repository path segments are not allowed")
     if type(pull_number) is not int or pull_number <= 0:
         raise ValueError("Expected a positive PR number")
     if not isinstance(head_sha, str) or not re.fullmatch(r"[0-9a-fA-F]{40}", head_sha):
@@ -27,6 +29,9 @@ class PublicationGate:
     """
 
     def __init__(self):
+        self._approved = None
+
+    def revoke(self):
         self._approved = None
 
     def record_operator_approval(self, repository, pull_number, reviewed_sha, payload):

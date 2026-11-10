@@ -64,4 +64,9 @@ Read all referenced assets from that base path throughout this workflow.
 - File comments must use PR review comment semantics (`subject_type=file`), and inline failures due to unresolved lines should retry as file comments.
 - Do not duplicate one finding across multiple comment modes, and do not add an extra review body comment per finding when inline/file comments are posted.
 - For actual posting, use `gh` CLI; if `gh` is unavailable or unauthenticated, fail posting explicitly.
+- The trusted host must dispatch publication through `runtime/github_publisher.py`
+  (or the operator-terminal `scripts/publish_review.py`), never raw model-issued
+  `gh` calls. These paths consume PublicationGate before the actual write.
+- Without this host integration, keep local artifacts only. Do not expose the
+  publisher, approval terminal, credentials, or trusted asset writes to any model.
 - Chat findings are supplementary; they do not replace required file outputs.

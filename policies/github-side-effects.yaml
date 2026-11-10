@@ -11,6 +11,7 @@ requirements:
   - If the initial request does not explicitly ask for posting, produce `second_opinion.md` and `second_opinion.json` first, then ask whether to post.
   - Do not add repository shell posting scripts for GitHub comments.
   - For actual GitHub comment posting, use `gh` CLI.
+  - The trusted host must dispatch through runtime/github_publisher.py or the operator-terminal scripts/publish_review.py, which consume PublicationGate before the actual write. Never expose either to models; fail publication closed if host integration is absent.
   - If `gh` is unavailable or unauthenticated, fail the posting step explicitly and do not auto-fallback to another posting path.
   - Posting review comments requires PR context. If no PR URL is available, fail posting explicitly and keep local outputs only.
   - When drafting or posting GitHub review comments, always use English.

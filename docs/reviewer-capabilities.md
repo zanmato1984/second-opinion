@@ -66,6 +66,9 @@ Review quality and injection into the content of findings are separate concerns.
 Treat all model output as untrusted. Source sent to the chosen provider must be
 within the operator's authorized scope. Publication requires actual operator
 authorization in the parent; this runner intentionally cannot publish.
+The separate [trusted publication dispatcher](publication.md) consumes real
+operator authorization at the actual `gh` write boundary. Its operator terminal
+and credentials must remain inaccessible to every model stage.
 
 API contract: [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
 and [Responses API](https://developers.openai.com/api/reference/resources/responses/methods/create).

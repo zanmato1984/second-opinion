@@ -77,4 +77,7 @@ After writing `second_opinion.md` and `second_opinion.json`:
 Never perform GitHub operations with side effects unless explicitly requested.
 Do not add repository shell posting scripts for GitHub comments.
 For actual posting, use `gh` CLI.
+The trusted host must use `runtime/github_publisher.py` or the operator-terminal
+`scripts/publish_review.py`; raw model-issued `gh` writes are not supported.
+If this integration is absent, retain local outputs and fail publication closed.
 If `gh` is unavailable or unauthenticated, fail the posting step explicitly and stop.

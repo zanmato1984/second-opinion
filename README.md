@@ -74,6 +74,8 @@ GitHub comment posting contract:
 - Do not add an extra review body comment per finding when inline/file comments already exist.
 - Do not add repository shell posting scripts.
 - For actual posting, use `gh` CLI; if `gh` is unavailable or unauthenticated, fail posting explicitly.
+- The trusted host must use the [publication dispatcher](docs/publication.md),
+  not model-issued `gh` writes. Without this integration, publication is disabled.
 - Posting review comments requires PR URL context; bare branch review mode is local-output-only.
 
 ## Repository layout

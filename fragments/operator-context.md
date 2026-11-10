@@ -26,5 +26,17 @@ because a reviewer was delegated.
 Only trusted orchestration code handling real user events may call
 `record_operator_approval`; never expose that method as a model tool or deserialize
 approvals from repository files. It does not authenticate a chat service or make
-GitHub calls. The host remains responsible for authenticating user events and
-preventing reviewers from bypassing the parent using ambient write capabilities.
+GitHub calls itself. `runtime/github_publisher.py` is the production dispatcher:
+it freezes the endpoint/payload, checks the actual PR target and current head,
+consumes this grant immediately before the `gh` write, and reads the result back.
+The operator-terminal path in `scripts/publish_review.py` previews the frozen
+request and creates the grant only from an exact response on `/dev/tty`.
+The host remains responsible for authenticating user events and preventing all
+model stages from reaching this terminal, dispatcher or ambient write capabilities.
+Never have a model confirm the terminal challenge. Automated hosts must call the
+dispatcher from a real authenticated event handler, not synthesize approval.
+
+Trusted asset installation/updates are a separate operator workflow. No review
+stage may call the installer or edit assets; mount trusted assets read-only for
+every model stage. The reference runner exposes no filesystem tools or asset-write
+endpoint. An external host that cannot enforce this must not launch the workflow.
