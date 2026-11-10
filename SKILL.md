@@ -5,6 +5,15 @@ description: "Consolidated PingCAP review expert skill for local code review. Tr
 
 # Second Opinion
 
+Perform this preflight before reading target content. Native unrestricted
+Codex/Claude skill execution is disabled: installing this Markdown does not
+remove tools, credentials, or asset-write access. The supported default is a
+trusted standalone tool-free review call, not a model manually running this
+workflow with shell tools. The companion asset-provenance repair is required for
+the fully pinned deterministic compilation path; this publication repair alone
+does not establish compiler-input provenance. Every external model stage still
+requires an equivalently enforced tool-free integration.
+
 ## Host capability preflight
 
 Autonomous review requires a host-enforced artifact-only capability boundary.
@@ -18,15 +27,6 @@ report the missing host integration. A prompt rule is not enforcement.
 Apply this restriction to tagger/compiler models processing untrusted source too.
 Keep authorization and mutation endpoints in trusted host code, not in an
 unrestricted parent agent that also reads the hostile diff.
-
-Perform this preflight before reading target content. Native unrestricted
-Codex/Claude skill execution is disabled: installing this Markdown does not
-remove tools, credentials, or asset-write access. The supported default is a
-trusted standalone tool-free review call, not a model manually running this
-workflow with shell tools. The companion asset-provenance repair is required for
-the fully pinned deterministic compilation path; this publication repair alone
-does not establish compiler-input provenance. Every external model stage still
-requires an equivalently enforced tool-free integration.
 
 ## Asset Location (Claude Code only)
 
