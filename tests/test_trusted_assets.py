@@ -99,7 +99,7 @@ class TrustedAssetTests(unittest.TestCase):
                                  "--review-root", str(self.reviewed)], cwd=self.reviewed,
                                 check=True, capture_output=True, text=True)
         data = json.loads(result.stdout)
-        self.assertEqual(data["asset_root"], str(second))
+        self.assertEqual(data["asset_root"], str(second.resolve()))
         self.assertNotIn("HOSTILE", result.stdout)
         for path in data["assets"]:
             self.assertEqual((exported / path).read_bytes(), (second / path).read_bytes())
