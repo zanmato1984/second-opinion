@@ -10,6 +10,8 @@ from urllib.error import URLError
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from runtime.trusted_assets import bundle
 ENDPOINT = "https://api.openai.com/v1/responses"
 LIMIT = 4 * 1024 * 1024
 OUTPUTS = ("second_opinion.json", "second_opinion.md")
@@ -174,6 +176,7 @@ def write_artifacts(directory, review):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compiled", required=True, type=Path, help="Compiler JSON containing compiled_prompt")
+    parser.add_argument("--review-root", required=True, type=Path, help="Target tree, separate from the trusted installation")
     parser.add_argument("--diff", required=True, type=Path)
     parser.add_argument("--context-file", action="append", default=[], type=Path, help="Explicitly selected evidence")
     parser.add_argument("--language", required=True)
@@ -182,6 +185,7 @@ def main(argv=None):
     parser.add_argument("--output-dir", required=True, type=Path, help="Existing directory without prior artifacts")
     args = parser.parse_args(argv)
     try:
+        bundle(args.review_root)  # Reject target-tree assets and symlinks before provider I/O.
         api_key = os.environ.get("SECOND_OPINION_API_KEY")
         if not api_key:
             raise ValueError("Set SECOND_OPINION_API_KEY in the trusted runner environment")

@@ -37,6 +37,7 @@ For example, with SECOND_OPINION_API_KEY securely set in the caller environment:
 
     python3 /path/to/trusted/second-opinion/scripts/review_only.py \
       --compiled /path/to/second_opinion_meta.json \
+      --review-root /path/to/reviewed/repository \
       --diff /path/to/change.diff \
       --context-file /path/to/selected-source.txt \
       --language English --model "$REVIEW_MODEL" \

@@ -22,14 +22,15 @@ python3 scripts/install_skill.py --destination "$HOME/.codex/skills/second-opini
 # Or Claude Code, global installation (no restart required)
 python3 scripts/install_skill.py --destination "$HOME/.claude/skills/second-opinion"
 
-# Or Claude Code, project-local installation; use the target project's path
-python3 scripts/install_skill.py --destination /path/to/project/.claude/skills/second-opinion
 ```
 
 The installer refuses an existing destination. To update, pull the source checkout,
 preserve the previous installation under a backup name, and export a fresh copy.
 Direct repository clones and generic whole-repository installers include test
 fixtures and are not the production installation path.
+Production exports also omit all sample foo assets. Do not install into the
+repository being reviewed: project-local and CWD asset discovery is unsupported.
+The trusted host must use the pinned [asset loader](docs/trusted-assets.md).
 
 See [safe E2E and preparation defaults](docs/e2e-security.md) for dedicated test
 credentials, fixture opt-in, and the `--merge-base` behavior change.
